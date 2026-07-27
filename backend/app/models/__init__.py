@@ -11,6 +11,7 @@ from app.models.ircc_update import IRCCUpdate, IRCCUpdateCategory, IRCCUpdateSou
 from app.models.fraud_analysis import FraudAnalysis, FraudAlertStatus, FraudRiskLevel
 from app.models.email_connection import EmailConnection, EmailProvider, IRCCEmail
 from app.models.whatsapp_notification import NotificationPreference, WhatsAppNotification
+from app.models.crs_simulation import CRSSimulation
 
 __all__ = [
     "Base",

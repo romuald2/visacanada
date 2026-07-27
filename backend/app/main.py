@@ -16,6 +16,7 @@ from app.api.ircc_profile import router as ircc_profile_router
 from app.api.email import router as email_router
 from app.api.notifications import router as notifications_router
 from app.api.dashboard import router as dashboard_router
+from app.api.crs import router as crs_router
 from app.core.config import settings
 
 app = FastAPI(
@@ -51,6 +52,7 @@ app.include_router(ircc_profile_router)
 app.include_router(email_router)
 app.include_router(notifications_router)
 app.include_router(dashboard_router)
+app.include_router(crs_router)
 
 
 @app.get("/")
