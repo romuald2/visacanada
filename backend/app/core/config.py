@@ -16,6 +16,11 @@ class Settings(BaseSettings):
     secret_key: str = "change-me-in-production"
     cors_origins: str = "http://localhost:3000"
 
+    # JWT
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30
+    refresh_token_expire_days: int = 7
+
     # Database
     database_url: str = (
         "postgresql+asyncpg://visacanada:visacanada_dev_password@localhost:5432/visacanada"
