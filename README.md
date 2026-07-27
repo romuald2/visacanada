@@ -111,15 +111,83 @@ Monitoring:    Sentry + LangSmith
 - **RBAC** : Contrôle d'accès basé sur les rôles
 - **Audit** : Journalisation complète des accès aux documents
 
-## 🛠️ Installation (à venir)
+## 🛠️ Installation
+
+### Prérequis
+- Docker & Docker Compose
+- Node.js 20+ (pour le développement frontend)
+- Python 3.12+ (pour le développement backend)
+
+### Démarrage rapide (Docker)
 
 ```bash
 # Cloner le repo
 git clone https://github.com/romuald2/visacanada.git
 cd visacanada
 
-# Lancer avec Docker
+# Copier les variables d'environnement
+cp .env.example .env
+
+# Lancer tous les services
+cd docker
 docker-compose up -d
+```
+
+L'application sera accessible sur :
+- Frontend : http://localhost:3000
+- Backend API : http://localhost:8000
+- API Docs (Swagger) : http://localhost:8000/docs
+
+### Développement local (sans Docker)
+
+**Backend :**
+```bash
+cd backend
+pip install -e ".[dev]"
+uvicorn app.main:app --reload --port 8000
+```
+
+**Frontend :**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### Tests
+
+```bash
+# Backend
+cd backend
+pytest
+
+# Frontend
+cd frontend
+npm run test:run
+```
+
+## 📁 Structure du Projet
+
+```
+visacanada/
+├── frontend/              # Next.js 15 (App Router)
+│   ├── src/
+│   │   ├── app/           # Pages et layouts
+│   │   ├── components/    # Composants React
+│   │   └── lib/           # Utilitaires
+│   └── package.json
+├── backend/               # Python FastAPI
+│   ├── app/
+│   │   ├── api/           # Routes API
+│   │   ├── core/          # Config, sécurité
+│   │   ├── models/        # Modèles SQLAlchemy
+│   │   └── services/      # Logique métier
+│   ├── alembic/           # Migrations DB
+│   ├── tests/             # Tests pytest
+│   └── pyproject.toml
+├── docker/                # Docker Compose + Dockerfiles
+├── .github/workflows/     # CI/CD GitHub Actions
+└── .env.example           # Variables d'environnement
 ```
 
 ## 📄 Licence
