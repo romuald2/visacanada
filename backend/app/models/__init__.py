@@ -7,6 +7,7 @@ from app.models.notification import Notification, NotificationChannel, Notificat
 from app.models.audit_log import AuditLog
 from app.models.program_requirement import ProgramRequirement, RequirementPriority
 from app.models.requirement_change import RequirementChange
+from app.models.ircc_update import IRCCUpdate, IRCCUpdateCategory, IRCCUpdateSource
 
 __all__ = [
     "Base",
@@ -27,4 +28,7 @@ __all__ = [
     "ProgramRequirement",
     "RequirementPriority",
     "RequirementChange",
+    "IRCCUpdate",
+    "IRCCUpdateCategory",
+    "IRCCUpdateSource",
 ]
