@@ -9,6 +9,7 @@ from app.api.documents import router as documents_router
 from app.api.programs import router as programs_router
 from app.api.ircc import router as ircc_router
 from app.api.upload import router as upload_router
+from app.api.extraction import router as extraction_router
 from app.core.config import settings
 
 app = FastAPI(
@@ -37,6 +38,7 @@ app.include_router(documents_router)
 app.include_router(programs_router)
 app.include_router(ircc_router)
 app.include_router(upload_router)
+app.include_router(extraction_router)
 
 
 @app.get("/")
