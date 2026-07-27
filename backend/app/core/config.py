@@ -42,6 +42,16 @@ class Settings(BaseSettings):
     # Anthropic
     anthropic_api_key: str = ""
 
+    # Google OAuth2 (Gmail)
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = "http://localhost:8000/email/callback/gmail"
+
+    # Microsoft OAuth2 (Outlook)
+    microsoft_client_id: str = ""
+    microsoft_client_secret: str = ""
+    microsoft_redirect_uri: str = "http://localhost:8000/email/callback/outlook"
+
     # Twilio WhatsApp
     twilio_account_sid: str = ""
     twilio_auth_token: str = ""

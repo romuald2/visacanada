@@ -9,6 +9,7 @@ from app.models.program_requirement import ProgramRequirement, RequirementPriori
 from app.models.requirement_change import RequirementChange
 from app.models.ircc_update import IRCCUpdate, IRCCUpdateCategory, IRCCUpdateSource
 from app.models.fraud_analysis import FraudAnalysis, FraudAlertStatus, FraudRiskLevel
+from app.models.email_connection import EmailConnection, EmailProvider, IRCCEmail
 
 __all__ = [
     "Base",
@@ -35,4 +36,7 @@ __all__ = [
     "FraudAnalysis",
     "FraudAlertStatus",
     "FraudRiskLevel",
+    "EmailConnection",
+    "EmailProvider",
+    "IRCCEmail",
 ]
