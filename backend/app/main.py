@@ -12,6 +12,7 @@ from app.api.upload import router as upload_router
 from app.api.extraction import router as extraction_router
 from app.api.compliance import router as compliance_router
 from app.api.fraud import router as fraud_router
+from app.api.ircc_profile import router as ircc_profile_router
 from app.core.config import settings
 
 app = FastAPI(
@@ -43,6 +44,7 @@ app.include_router(upload_router)
 app.include_router(extraction_router)
 app.include_router(compliance_router)
 app.include_router(fraud_router)
+app.include_router(ircc_profile_router)
 
 
 @app.get("/")
