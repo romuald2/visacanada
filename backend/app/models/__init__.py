@@ -10,6 +10,7 @@ from app.models.requirement_change import RequirementChange
 from app.models.ircc_update import IRCCUpdate, IRCCUpdateCategory, IRCCUpdateSource
 from app.models.fraud_analysis import FraudAnalysis, FraudAlertStatus, FraudRiskLevel
 from app.models.email_connection import EmailConnection, EmailProvider, IRCCEmail
+from app.models.whatsapp_notification import NotificationPreference, WhatsAppNotification
 
 __all__ = [
     "Base",
@@ -39,4 +40,6 @@ __all__ = [
     "EmailConnection",
     "EmailProvider",
     "IRCCEmail",
+    "WhatsAppNotification",
+    "NotificationPreference",
 ]

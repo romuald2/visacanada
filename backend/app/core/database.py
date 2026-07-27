@@ -6,6 +6,9 @@ engine = create_async_engine(settings.database_url, echo=settings.debug)
 
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
+# Alias for Celery tasks and other non-dependency contexts
+async_session_factory = async_session
+
 
 async def get_db() -> AsyncSession:
     """Dependency that provides a database session."""

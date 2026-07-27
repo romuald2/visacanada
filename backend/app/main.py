@@ -14,6 +14,7 @@ from app.api.compliance import router as compliance_router
 from app.api.fraud import router as fraud_router
 from app.api.ircc_profile import router as ircc_profile_router
 from app.api.email import router as email_router
+from app.api.notifications import router as notifications_router
 from app.core.config import settings
 
 app = FastAPI(
@@ -47,6 +48,7 @@ app.include_router(compliance_router)
 app.include_router(fraud_router)
 app.include_router(ircc_profile_router)
 app.include_router(email_router)
+app.include_router(notifications_router)
 
 
 @app.get("/")
