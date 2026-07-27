@@ -6,6 +6,7 @@ from app.api.auth import router as auth_router
 from app.api.candidates import router as candidates_router
 from app.api.dossiers import router as dossiers_router
 from app.api.documents import router as documents_router
+from app.api.programs import router as programs_router
 from app.core.config import settings
 
 app = FastAPI(
@@ -31,6 +32,7 @@ app.include_router(auth_router)
 app.include_router(candidates_router)
 app.include_router(dossiers_router)
 app.include_router(documents_router)
+app.include_router(programs_router)
 
 
 @app.get("/")

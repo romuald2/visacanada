@@ -5,6 +5,8 @@ from app.models.document import Document, DocumentStatus, DocumentType
 from app.models.program import ImmigrationProgram, Program
 from app.models.notification import Notification, NotificationChannel, NotificationType
 from app.models.audit_log import AuditLog
+from app.models.program_requirement import ProgramRequirement, RequirementPriority
+from app.models.requirement_change import RequirementChange
 
 __all__ = [
     "Base",
@@ -22,4 +24,7 @@ __all__ = [
     "NotificationChannel",
     "NotificationType",
     "AuditLog",
+    "ProgramRequirement",
+    "RequirementPriority",
+    "RequirementChange",
 ]
