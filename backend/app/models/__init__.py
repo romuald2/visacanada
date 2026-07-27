@@ -8,6 +8,7 @@ from app.models.audit_log import AuditLog
 from app.models.program_requirement import ProgramRequirement, RequirementPriority
 from app.models.requirement_change import RequirementChange
 from app.models.ircc_update import IRCCUpdate, IRCCUpdateCategory, IRCCUpdateSource
+from app.models.fraud_analysis import FraudAnalysis, FraudAlertStatus, FraudRiskLevel
 
 __all__ = [
     "Base",
@@ -31,4 +32,7 @@ __all__ = [
     "IRCCUpdate",
     "IRCCUpdateCategory",
     "IRCCUpdateSource",
+    "FraudAnalysis",
+    "FraudAlertStatus",
+    "FraudRiskLevel",
 ]
