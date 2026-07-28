@@ -64,9 +64,11 @@ Chaque lot est indépendant, testable, et apporte de la valeur seul. Ordre recom
 
 **Tests** : `test_document_validity.py` (unitaire pur, pas de DB) + intégration sur l'upload.
 
-### Lot 3 — Échéances spécifiques à l'immigration
+### Lot 3 — Échéances spécifiques à l'immigration ✅ LIVRÉ
 
 **But** : modéliser les jalons à délai qui ne sont pas des documents.
+
+> Livré : modèle `Deadline` (`models/deadline.py`, types ITA/biométrie/PPR/medical/soumission/permis/custom + source manuel/dérivé), migration `017_create_deadlines.py` (+ extension enum `alerttype`), scan `scan_deadlines()` par seuils dans `AlertService` (ITA 60j, biométrie 30j, permis 90j…, escalade critique à l'approche/dépassement), CRUD `/deadlines` (create/list/update/complete/delete, admin+consultant). Tests : `test_deadlines.py` (14). `submission_deadline` reste géré par le scan existant ; on privilégie désormais le modèle `Deadline` pour les nouveaux jalons.
 
 - **3a. Nouveau modèle `Deadline`** (`models/deadline.py`)
   - Champs : `dossier_id`, `deadline_type` (enum : `ita_response`, `biometrics`, `ppr`, `medical_request`, `work_permit_expiry`, `study_permit_expiry`, `custom`), `due_date`, `description`, `is_completed`, `completed_at`, `source` (manuel / dérivé).

@@ -26,6 +26,12 @@ class AlertType(str, enum.Enum):
     express_entry_round = "express_entry_round"
     policy_change = "policy_change"
     submission_deadline = "submission_deadline"
+    # Immigration milestone deadlines (Lot 3)
+    ita_response = "ita_response"
+    biometrics = "biometrics"
+    ppr = "ppr"
+    medical_request = "medical_request"
+    permit_expiring = "permit_expiring"
 
 
 class AlertSeverity(str, enum.Enum):

@@ -25,6 +25,7 @@ from app.models.alert import (
     AlertSeverity,
     AlertType,
 )
+from app.models.deadline import Deadline, DeadlineType
 from app.models.document import Document, DocumentType
 from app.models.dossier import Dossier, DossierStatus
 from app.models.notification import (
@@ -43,6 +44,19 @@ SUBMISSION_DEADLINE_DAYS = 30
 
 # Default channel toggles when a dossier has no AlertConfig.channels set.
 DEFAULT_CHANNELS = {"dashboard": True, "email": True, "whatsapp": False}
+
+# Per-deadline-type: the AlertType to emit, the window (days) within which
+# an approaching deadline starts alerting, and the label used in messages.
+DEADLINE_RULES: dict[DeadlineType, tuple[AlertType, int, str]] = {
+    DeadlineType.ita_response: (AlertType.ita_response, 60, "Reponse a l'invitation (ITA)"),
+    DeadlineType.biometrics: (AlertType.biometrics, 30, "Collecte des biometries"),
+    DeadlineType.ppr: (AlertType.ppr, 30, "Demande de passeport (PPR)"),
+    DeadlineType.medical_request: (AlertType.medical_request, 30, "Examen medical demande"),
+    DeadlineType.submission: (AlertType.submission_deadline, 30, "Soumission du dossier"),
+    DeadlineType.work_permit_expiry: (AlertType.permit_expiring, 90, "Permis de travail"),
+    DeadlineType.study_permit_expiry: (AlertType.permit_expiring, 90, "Permis d'etudes"),
+    DeadlineType.custom: (AlertType.submission_deadline, 30, "Echeance"),
+}
 
 
 def _naive(dt: datetime | None) -> datetime | None:
@@ -281,6 +295,66 @@ class AlertService:
         )
         return [alert] if alert else []
 
+    async def scan_deadlines(
+        self, db: AsyncSession, dossier: Dossier, config: AlertConfig | None
+    ) -> list[Alert]:
+        """Alert on open (not completed) Deadline milestones approaching.
+
+        Each deadline type has its own alerting window and emits at the
+        type's AlertType. Severity escalates as the due date nears; an
+        overdue deadline is critical.
+        """
+        now = self._now_naive()
+        created: list[Alert] = []
+
+        result = await db.execute(
+            select(Deadline).where(
+                Deadline.dossier_id == dossier.id,
+                Deadline.is_completed == False,  # noqa: E712
+            )
+        )
+        deadlines = result.scalars().all()
+
+        for dl in deadlines:
+            rule = DEADLINE_RULES.get(dl.deadline_type)
+            if rule is None:
+                continue
+            alert_type, window, label = rule
+            if not self._type_enabled(config, alert_type):
+                continue
+
+            due = _naive(dl.due_date)
+            days_left = (due - now).days
+            if days_left > window:
+                continue
+
+            if days_left < 0:
+                severity = AlertSeverity.critical
+                msg = f"{label}: echeance depassee depuis {abs(days_left)} jour(s)."
+            elif days_left <= max(window // 6, 3):
+                severity = AlertSeverity.critical
+                msg = f"{label}: {days_left} jour(s) restant(s)."
+            else:
+                severity = AlertSeverity.warning
+                msg = f"{label}: {days_left} jour(s) restant(s)."
+
+            # Re-alert only if the due date changes.
+            dedup = f"deadline:{dl.id}:{alert_type.value}:{due.date().isoformat()}"
+            alert = await self._emit(
+                db,
+                dossier.id,
+                alert_type,
+                severity,
+                f"{label} - echeance",
+                msg,
+                dedup,
+                {"deadline_id": dl.id, "days_left": days_left},
+            )
+            if alert:
+                created.append(alert)
+
+        return created
+
     async def scan_dossier(
         self,
         db: AsyncSession,
@@ -304,6 +378,7 @@ class AlertService:
         created: list[Alert] = []
         created += await self.scan_document_expiries(db, dossier, config)
         created += await self.scan_submission_deadline(db, dossier, config)
+        created += await self.scan_deadlines(db, dossier, config)
         if candidate_crs is not None and latest_round is not None:
             created += await self.scan_express_entry_round(
                 db, dossier, config, latest_round, candidate_crs
