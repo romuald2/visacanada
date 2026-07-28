@@ -9,7 +9,10 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:install": "playwright install --with-deps"
   },
   "dependencies": {
     "next": "^15.1.0",
@@ -34,6 +37,7 @@
     "@testing-library/react": "^16.1.0",
     "@testing-library/jest-dom": "^6.6.0",
     "@vitejs/plugin-react": "^4.3.0",
-    "jsdom": "^25.0.0"
+    "jsdom": "^25.0.0",
+    "@playwright/test": "^1.49.0"
   }
 }
