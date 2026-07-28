@@ -13,6 +13,7 @@ from app.models.email_connection import EmailConnection, EmailProvider, IRCCEmai
 from app.models.whatsapp_notification import NotificationPreference, WhatsAppNotification
 from app.models.crs_simulation import CRSSimulation
 from app.models.generated_letter import GeneratedLetter
+from app.models.alert import Alert, AlertConfig, AlertSeverity, AlertType
 
 __all__ = [
     "Base",
@@ -46,4 +47,8 @@ __all__ = [
     "NotificationPreference",
     "CRSSimulation",
     "GeneratedLetter",
+    "Alert",
+    "AlertConfig",
+    "AlertSeverity",
+    "AlertType",
 ]
