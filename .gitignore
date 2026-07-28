@@ -28,6 +28,7 @@ ENV/
 # Node
 node_modules/
 .next/
+next-env.d.ts
 
 # Frontend source under src/lib/ is real code, not a Python build artifact
 !frontend/src/lib/

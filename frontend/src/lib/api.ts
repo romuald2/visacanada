@@ -1,6 +1,11 @@
 /** Minimal typed API client for the VisaCanada backend. */
 
-import type { TokenResponse, UpcomingResponse, User } from "@/lib/types";
+import type {
+  DossierPage,
+  TokenResponse,
+  UpcomingResponse,
+  User,
+} from "@/lib/types";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
@@ -126,4 +131,15 @@ export function getUpcomingDeadlines(
 ): Promise<UpcomingResponse> {
   const days = opts.days ?? 30;
   return apiGet<UpcomingResponse>(`/alerts/upcoming?days=${days}`, opts);
+}
+
+/** List dossiers (paginated). The backend scopes results by role. */
+export function getDossiers(
+  opts: RequestOptions & { page?: number; size?: number; status?: string } = {},
+): Promise<DossierPage> {
+  const params = new URLSearchParams();
+  params.set("page", String(opts.page ?? 1));
+  params.set("size", String(opts.size ?? 20));
+  if (opts.status) params.set("status", opts.status);
+  return apiGet<DossierPage>(`/dossiers/?${params.toString()}`, opts);
 }

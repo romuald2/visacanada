@@ -56,3 +56,40 @@ export interface TokenResponse {
   refresh_token: string;
   token_type: string;
 }
+
+// --- Dossiers ---
+
+export type DossierStatus =
+  | "nouveau"
+  | "en_cours"
+  | "documents_manquants"
+  | "en_revision"
+  | "soumis"
+  | "approuve"
+  | "refuse"
+  | "archive";
+
+/** One dossier from GET /dossiers/ (staff view). */
+export interface Dossier {
+  id: number;
+  candidate_id: number;
+  program_id: number;
+  assigned_to: number | null;
+  status: DossierStatus;
+  compliance_score: number | null;
+  reference_number: string | null;
+  notes: string | null;
+  submitted_at: string | null;
+  decision_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Paginated envelope from GET /dossiers/. */
+export interface DossierPage {
+  items: Dossier[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
+}
