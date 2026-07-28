@@ -114,13 +114,19 @@ class IRCCFeedParser:
             # Try without namespace (some feeds don't use it)
             entries = root.findall("entry")
 
+        def _find(el, tag):
+            # NB: `a or b` is wrong for Elements — an element with no children
+            # is falsy, so a successful namespaced match would be discarded.
+            found = el.find(f"atom:{tag}", ns)
+            return found if found is not None else el.find(tag)
+
         for entry in entries:
-            title_el = entry.find("atom:title", ns) or entry.find("title")
-            link_el = entry.find("atom:link", ns) or entry.find("link")
-            summary_el = entry.find("atom:summary", ns) or entry.find("summary")
-            content_el = entry.find("atom:content", ns) or entry.find("content")
-            updated_el = entry.find("atom:updated", ns) or entry.find("updated")
-            published_el = entry.find("atom:published", ns) or entry.find("published")
+            title_el = _find(entry, "title")
+            link_el = _find(entry, "link")
+            summary_el = _find(entry, "summary")
+            content_el = _find(entry, "content")
+            updated_el = _find(entry, "updated")
+            published_el = _find(entry, "published")
 
             title = title_el.text.strip() if title_el is not None and title_el.text else ""
             if not title:

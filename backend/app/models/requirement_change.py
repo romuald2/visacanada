@@ -13,7 +13,7 @@ class RequirementChange(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     requirement_id: Mapped[int] = mapped_column(
-        ForeignKey("program_requirements.id"), nullable=False
+        ForeignKey("program_requirements.id", ondelete="CASCADE"), nullable=False
     )
     changed_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     field_name: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -25,7 +25,7 @@ class RequirementChange(Base):
     )
 
     # Relationships
-    requirement = relationship("ProgramRequirement", backref="changes")
+    requirement = relationship("ProgramRequirement", back_populates="changes")
     user = relationship("User", backref="requirement_changes")
 
     def __repr__(self) -> str:

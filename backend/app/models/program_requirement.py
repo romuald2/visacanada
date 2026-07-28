@@ -39,6 +39,13 @@ class ProgramRequirement(Base):
 
     # Relationships
     program = relationship("Program", backref="requirements")
+    # Deleting a requirement must delete its change history: requirement_id is
+    # NOT NULL, so the default "dissociate" behaviour would violate the FK.
+    changes = relationship(
+        "RequirementChange",
+        back_populates="requirement",
+        cascade="all, delete-orphan",
+    )
 
     def __repr__(self) -> str:
         return (
