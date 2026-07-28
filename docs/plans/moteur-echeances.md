@@ -82,13 +82,15 @@ Chaque lot est indépendant, testable, et apporte de la valeur seul. Ordre recom
 
 **Tests** : `test_deadlines.py` (modèle + scan + API).
 
-### Lot 4 — Restitution et pilotage (optionnel, dépend du frontend)
+### Lot 4 — Restitution et pilotage ✅ LIVRÉ (première tranche frontend)
 
 - Widget « échéances des 30 prochains jours » sur le dashboard.
 - Vue calendrier par consultant.
 - Compteur d'échéances critiques dans `analytics`.
 
-Ce lot n'a de sens qu'une fois le frontend étoffé — à garder pour plus tard.
+> Livré : client API typé (`src/lib/api.ts` avec `getUpcomingDeadlines` → `GET /alerts/upcoming`, `ApiError`, auth Bearer), types partagés (`src/lib/types.ts`), helpers de présentation (`src/lib/deadlines.ts` : libellés FR par type, styles de sévérité, `formatDaysLeft`, `countBySeverity`, `sortByUrgency`), et composants du widget dashboard (`components/deadlines/UpcomingDeadlines.tsx` + `SeverityCounters.tsx` + `DeadlineCard.tsx`) — compteurs par sévérité + liste triée par urgence, purs (données passées en props). Tests : `deadlines.test.ts` (helpers) + `UpcomingDeadlines.test.tsx` (composants).
+>
+> Reste à faire (tranches suivantes) : brancher le widget sur une page dashboard authentifiée réelle, vue calendrier par consultant, compteur critique dans `analytics`.
 
 ---
 
