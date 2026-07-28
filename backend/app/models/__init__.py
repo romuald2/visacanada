@@ -12,6 +12,7 @@ from app.models.fraud_analysis import FraudAnalysis, FraudAlertStatus, FraudRisk
 from app.models.email_connection import EmailConnection, EmailProvider, IRCCEmail
 from app.models.whatsapp_notification import NotificationPreference, WhatsAppNotification
 from app.models.crs_simulation import CRSSimulation
+from app.models.generated_letter import GeneratedLetter
 
 __all__ = [
     "Base",
@@ -43,4 +44,6 @@ __all__ = [
     "IRCCEmail",
     "WhatsAppNotification",
     "NotificationPreference",
+    "CRSSimulation",
+    "GeneratedLetter",
 ]
