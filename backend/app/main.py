@@ -24,6 +24,7 @@ from app.api.analytics import router as analytics_router
 from app.api.family import router as family_router
 from app.api.billing import router as billing_router
 from app.api.knowledge import router as knowledge_router
+from app.api.privacy import router as privacy_router
 from app.core.config import settings
 
 app = FastAPI(
@@ -67,6 +68,7 @@ app.include_router(analytics_router)
 app.include_router(family_router)
 app.include_router(billing_router)
 app.include_router(knowledge_router)
+app.include_router(privacy_router)
 
 
 @app.get("/")

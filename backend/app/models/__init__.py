@@ -37,6 +37,13 @@ from app.models.knowledge import (
     KnowledgeSourceType,
     MessageRole,
 )
+from app.models.privacy import (
+    BreachIncident,
+    ConsentRecord,
+    ConsentType,
+    IncidentSeverity,
+    IncidentStatus,
+)
 
 __all__ = [
     "Base",
@@ -91,4 +98,9 @@ __all__ = [
     "ChatConversation",
     "ChatMessage",
     "MessageRole",
+    "ConsentRecord",
+    "ConsentType",
+    "BreachIncident",
+    "IncidentSeverity",
+    "IncidentStatus",
 ]
