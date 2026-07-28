@@ -369,6 +369,97 @@ class TestExtractionAPI:
         assert data["extracted_data"]["fields"]["first_name"]["value"] == "Jean-Pierre"
         assert "_manual_correction" in data["extracted_data"]
 
+    @patch("app.api.extraction._fetch_file_from_s3")
+    @patch("app.api.extraction.azure_ocr_service")
+    async def test_extract_populates_expiry(self, mock_azure, mock_fetch, client: AsyncClient):
+        mock_fetch.return_value = b"fake pdf content"
+        mock_azure.is_configured = True
+        mock_azure.extract_document = AsyncMock(return_value={
+            "type": "passport",
+            "fields": {"expiry_date": {"value": "2029-08-15", "confidence": 0.96}},
+            "confidence": 0.95,
+        })
+
+        doc_id, headers = await setup_document()
+        resp = await client.post(
+            f"/extraction/{doc_id}/extract",
+            json={"extraction_type": "passport"},
+            headers=headers,
+        )
+        assert resp.status_code == 200
+
+        async with TestSessionLocal() as session:
+            doc = (
+                await session.execute(select(Document).where(Document.id == doc_id))
+            ).scalar_one()
+            assert doc.expires_at is not None
+            assert doc.expires_at.year == 2029
+            assert doc.expires_at.month == 8
+
+    async def test_manual_correction_updates_expiry(self, client: AsyncClient):
+        # Use a language_test doc so expiry is derived from issue date.
+        async with TestSessionLocal() as session:
+            admin = User(
+                email="admin3@ocr.com",
+                hashed_password=hash_password("pass"),
+                full_name="Admin",
+                role=UserRole.admin,
+            )
+            candidate = Candidate(first_name="L", last_name="T", email="lt@ocr.com")
+            program = Program(
+                code=ImmigrationProgram.express_entry_fsw,
+                name="FSW",
+                category="Express Entry",
+                is_active=True,
+            )
+            session.add_all([admin, candidate, program])
+            await session.commit()
+            await session.refresh(admin)
+            await session.refresh(candidate)
+            await session.refresh(program)
+            dossier = Dossier(
+                candidate_id=candidate.id,
+                program_id=program.id,
+                status=DossierStatus.en_cours,
+            )
+            session.add(dossier)
+            await session.commit()
+            await session.refresh(dossier)
+            doc = Document(
+                dossier_id=dossier.id,
+                document_type=DocumentType.language_test,
+                status=DocumentStatus.uploaded,
+                file_name="ielts.pdf",
+            )
+            session.add(doc)
+            await session.commit()
+            await session.refresh(doc)
+            doc_id = doc.id
+            token = create_access_token(
+                {"sub": str(admin.id), "email": admin.email, "role": "admin"}
+            )
+            headers = {"Authorization": f"Bearer {token}"}
+
+        resp = await client.put(
+            f"/extraction/{doc_id}/extracted-data",
+            json={
+                "extracted_data": {
+                    "type": "language_test",
+                    "fields": {"issue_date": {"value": "2025-06-01", "confidence": 1.0}},
+                }
+            },
+            headers=headers,
+        )
+        assert resp.status_code == 200
+
+        async with TestSessionLocal() as session:
+            doc = (
+                await session.execute(select(Document).where(Document.id == doc_id))
+            ).scalar_one()
+            # 2025-06-01 + 730 days = 2027-05-31/06-01 window
+            assert doc.expires_at is not None
+            assert doc.expires_at.year == 2027
+
     async def test_update_extracted_data_forbidden_for_candidat(self, client: AsyncClient):
         doc_id, _ = await setup_document()
 

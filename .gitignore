@@ -28,6 +28,10 @@ ENV/
 # Node
 node_modules/
 .next/
+
+# Frontend source under src/lib/ is real code, not a Python build artifact
+!frontend/src/lib/
+!frontend/src/lib/**
 out/
 .turbo/
 

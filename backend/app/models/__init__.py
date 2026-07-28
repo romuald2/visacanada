@@ -14,6 +14,7 @@ from app.models.whatsapp_notification import NotificationPreference, WhatsAppNot
 from app.models.crs_simulation import CRSSimulation
 from app.models.generated_letter import GeneratedLetter
 from app.models.alert import Alert, AlertConfig, AlertSeverity, AlertType
+from app.models.deadline import Deadline, DeadlineSource, DeadlineType
 from app.models.family import (
     FamilyGroup,
     FamilyMember,
@@ -81,6 +82,9 @@ __all__ = [
     "AlertConfig",
     "AlertSeverity",
     "AlertType",
+    "Deadline",
+    "DeadlineSource",
+    "DeadlineType",
     "FamilyGroup",
     "FamilyMember",
     "FamilyRole",

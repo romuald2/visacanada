@@ -20,6 +20,7 @@ from app.api.crs import router as crs_router
 from app.api.letters import router as letters_router
 from app.api.portal import router as portal_router
 from app.api.alerts import router as alerts_router
+from app.api.deadlines import router as deadlines_router
 from app.api.analytics import router as analytics_router
 from app.api.family import router as family_router
 from app.api.billing import router as billing_router
@@ -68,6 +69,7 @@ app.include_router(crs_router)
 app.include_router(letters_router)
 app.include_router(portal_router)
 app.include_router(alerts_router)
+app.include_router(deadlines_router)
 app.include_router(analytics_router)
 app.include_router(family_router)
 app.include_router(billing_router)
