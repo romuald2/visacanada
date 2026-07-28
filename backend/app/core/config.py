@@ -42,6 +42,11 @@ class Settings(BaseSettings):
     # Anthropic
     anthropic_api_key: str = ""
 
+    # Embeddings (Voyage AI) - optional; falls back to deterministic local embedding
+    voyage_api_key: str = ""
+    embedding_model: str = "voyage-3"
+    embedding_dim: int = 256
+
     # Google OAuth2 (Gmail)
     google_client_id: str = ""
     google_client_secret: str = ""

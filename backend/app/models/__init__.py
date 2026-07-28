@@ -29,6 +29,14 @@ from app.models.billing import (
     PaymentMethod,
     PaymentStatus,
 )
+from app.models.knowledge import (
+    ChatConversation,
+    ChatMessage,
+    KnowledgeChunk,
+    KnowledgeDocument,
+    KnowledgeSourceType,
+    MessageRole,
+)
 
 __all__ = [
     "Base",
@@ -77,4 +85,10 @@ __all__ = [
     "Payment",
     "PaymentMethod",
     "PaymentStatus",
+    "KnowledgeDocument",
+    "KnowledgeChunk",
+    "KnowledgeSourceType",
+    "ChatConversation",
+    "ChatMessage",
+    "MessageRole",
 ]
