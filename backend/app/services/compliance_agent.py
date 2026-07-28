@@ -274,7 +274,8 @@ Réponds UNIQUEMENT avec un JSON valide (pas de texte avant ou après):
 
         consistency_score = max(0, consistency_score)
 
-        # Global score (weighted)
+        # Global score (weighted). Note: the API path recomputes this via
+        # ScoringEngine.build_score_summary, which also caps by completeness.
         global_score = (
             completeness_score * 0.4
             + validity_score * 0.3

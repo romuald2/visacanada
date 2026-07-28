@@ -71,10 +71,20 @@ class ScoringEngine:
 
     def build_score_summary(self, compliance_report: dict[str, Any]) -> dict[str, Any]:
         """Build a structured score summary for API responses."""
-        global_score = self.calculate_global_score(compliance_report)
-        status = self.get_score_status(global_score)
-
         completeness = compliance_report.get("completeness", {})
+
+        # Completeness caps the global score. Validity and consistency default
+        # to 100 when there is nothing to check, so a dossier missing mandatory
+        # documents would otherwise score high "by vacuity" (e.g. 1/3 docs =
+        # 33% complete but 73% global). A file can never be more compliant than
+        # it is complete — absent documents can't be validated, so they must
+        # not be implicitly credited.
+        completeness_score = completeness.get("score", 0)
+        global_score = min(
+            self.calculate_global_score(compliance_report),
+            completeness_score,
+        )
+        status = self.get_score_status(global_score)
         validity = compliance_report.get("validity", {})
         consistency = compliance_report.get("consistency", {})
         recommendations = compliance_report.get("recommendations", [])
