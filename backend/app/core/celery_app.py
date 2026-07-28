@@ -21,11 +21,18 @@ celery_app.conf.update(
     task_default_queue="default",
 )
 
-# Scheduled tasks: IRCC monitoring Mon/Wed/Fri at 8:00 AM ET
+# Scheduled tasks
 celery_app.conf.beat_schedule = {
+    # IRCC monitoring Mon/Wed/Fri at 8:00 AM ET
     "ircc-monitor-mwf": {
         "task": "app.tasks.ircc_tasks.monitor_ircc_updates",
         "schedule": crontab(hour=8, minute=0, day_of_week="mon,wed,fri"),
+        "options": {"queue": "monitoring"},
+    },
+    # Deadline / alert engine: daily scan + delivery at 7:00 AM ET
+    "deadline-scan-daily": {
+        "task": "app.tasks.alert_tasks.scan_deadlines",
+        "schedule": crontab(hour=7, minute=0),
         "options": {"queue": "monitoring"},
     },
 }
