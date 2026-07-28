@@ -12,10 +12,15 @@ IMPORTANT: Never auto-rejects. Always flags for human review.
 
 import hashlib
 import re
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Any
 
 from app.core.config import settings
+
+
+def _utcnow() -> datetime:
+    """Naive UTC timestamp (matches the rest of the codebase)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 class FraudAlert:
@@ -115,7 +120,7 @@ class FraudDetectionService:
                 "total": len(alerts),
             },
             "summary": self._build_summary(alerts, fraud_score),
-            "analyzed_at": datetime.utcnow().isoformat(),
+            "analyzed_at": _utcnow().isoformat(),
         }
 
     def _analyze_metadata(self, pdf_metadata: dict[str, Any]) -> list[FraudAlert]:

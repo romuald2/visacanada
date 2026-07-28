@@ -6,8 +6,13 @@ Fallback to SMS if WhatsApp delivery fails.
 """
 
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
+
+
+def _utcnow() -> datetime:
+    """Naive UTC timestamp (matches the rest of the codebase)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 import httpx
 
@@ -236,7 +241,7 @@ class WhatsAppService:
         # Send
         result = await self.send_whatsapp(to_number, message)
         result["event"] = event
-        result["sent_at"] = datetime.utcnow().isoformat()
+        result["sent_at"] = _utcnow().isoformat()
 
         return result
 

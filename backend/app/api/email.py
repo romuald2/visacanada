@@ -1,9 +1,14 @@
 """Email integration API router."""
 
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+
+
+def _utcnow() -> datetime:
+    """Naive UTC timestamp (matches the rest of the codebase)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -79,7 +84,7 @@ async def gmail_callback(
         email_address=email_address,
         access_token=access_token,
         refresh_token=refresh_token,
-        token_expires_at=datetime.utcnow() + timedelta(seconds=expires_in),
+        token_expires_at=_utcnow() + timedelta(seconds=expires_in),
         is_active=True,
     )
     db.add(connection)
@@ -118,7 +123,7 @@ async def outlook_callback(
         email_address=email_address,
         access_token=access_token,
         refresh_token=refresh_token,
-        token_expires_at=datetime.utcnow() + timedelta(seconds=expires_in),
+        token_expires_at=_utcnow() + timedelta(seconds=expires_in),
         is_active=True,
     )
     db.add(connection)
@@ -145,7 +150,7 @@ async def disconnect_email(
         raise HTTPException(status_code=404, detail="Connexion non trouvee")
 
     connection.is_active = False
-    connection.consent_revoked_at = datetime.utcnow()
+    connection.consent_revoked_at = _utcnow()
     await db.commit()
 
     return {"message": "Connexion email revoquee"}
@@ -204,7 +209,7 @@ async def sync_candidate_emails(
 
     for conn in connections:
         # Refresh token if expired
-        if conn.token_expires_at and conn.token_expires_at < datetime.utcnow():
+        if conn.token_expires_at and conn.token_expires_at < _utcnow():
             if not conn.refresh_token:
                 continue
             try:
@@ -213,7 +218,7 @@ async def sync_candidate_emails(
                 else:
                     token_data = await outlook_service.refresh_access_token(conn.refresh_token)
                 conn.access_token = token_data["access_token"]
-                conn.token_expires_at = datetime.utcnow() + timedelta(
+                conn.token_expires_at = _utcnow() + timedelta(
                     seconds=token_data.get("expires_in", 3600)
                 )
             except ValueError:
@@ -243,7 +248,7 @@ async def sync_candidate_emails(
             svc = gmail_service if conn.provider == EmailProvider.gmail else outlook_service
             parsed = svc.parse_ircc_email(email_data)
 
-            received_at = datetime.utcnow()
+            received_at = _utcnow()
             if email_data.get("received_at"):
                 try:
                     received_at = datetime.fromisoformat(
@@ -266,7 +271,7 @@ async def sync_candidate_emails(
             db.add(ircc_email)
             total_new += 1
 
-        conn.last_sync_at = datetime.utcnow()
+        conn.last_sync_at = _utcnow()
 
     await db.commit()
     return {"message": f"{total_new} nouveau(x) email(s) IRCC detecte(s)", "new_emails": total_new}

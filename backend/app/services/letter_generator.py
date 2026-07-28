@@ -5,11 +5,16 @@ Supports: motivation letters, explanation letters, financial support letters.
 Templates are customized per immigration program.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
 import httpx
+
+
+def _utcnow() -> datetime:
+    """Naive UTC timestamp (matches the rest of the codebase)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 from app.core.config import settings
 
@@ -189,7 +194,7 @@ class LetterGenerator:
                     "content": content,
                     "method": "ai",
                     "letter_type": letter_type,
-                    "generated_at": datetime.utcnow().isoformat(),
+                    "generated_at": _utcnow().isoformat(),
                     "program": program,
                 }
             except Exception:
@@ -201,7 +206,7 @@ class LetterGenerator:
             "content": content,
             "method": "template",
             "letter_type": letter_type,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": _utcnow().isoformat(),
             "program": program,
         }
 
@@ -292,7 +297,7 @@ class LetterGenerator:
 
         # Add defaults
         defaults = {
-            "date": datetime.utcnow().strftime("%d/%m/%Y"),
+            "date": _utcnow().strftime("%d/%m/%Y"),
             "city": "Montreal",
             "full_name": "[Nom complet]",
             "email": "[Email]",

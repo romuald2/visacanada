@@ -1,9 +1,14 @@
 """Fraud detection API router."""
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+
+
+def _utcnow() -> datetime:
+    """Naive UTC timestamp (matches the rest of the codebase)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -102,8 +107,8 @@ async def analyze_document_fraud(
     audit = AuditLog(
         user_id=current_user.id,
         action="fraud_analysis",
-        resource_type="document",
-        resource_id=str(document_id),
+        entity_type="document",
+        entity_id=document_id,
         details=json.dumps({
             "fraud_score": analysis_result["fraud_score"],
             "risk_level": analysis_result["risk_level"],
@@ -196,15 +201,15 @@ async def review_fraud_alert(
 
     analysis.status = FraudAlertStatus(body.status)
     analysis.reviewed_by = current_user.id
-    analysis.reviewed_at = datetime.utcnow()
+    analysis.reviewed_at = _utcnow()
     analysis.review_notes = body.notes
 
     # Log to audit
     audit = AuditLog(
         user_id=current_user.id,
         action="fraud_review",
-        resource_type="fraud_analysis",
-        resource_id=str(alert_id),
+        entity_type="fraud_analysis",
+        entity_id=alert_id,
         details=json.dumps({
             "status": body.status,
             "document_id": analysis.document_id,

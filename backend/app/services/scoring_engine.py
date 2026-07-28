@@ -4,7 +4,7 @@ Aggregates compliance verification results into a weighted score (0-100%).
 Tracks score history for dossier progression monitoring.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
@@ -12,6 +12,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.dossier import Dossier
+
+
+def _utcnow() -> datetime:
+    """Naive UTC timestamp (matches the rest of the codebase)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 from app.models.document import Document
 
 
@@ -122,7 +127,7 @@ class ScoringEngine:
             "recommendations": recommendations,
             "summary": compliance_report.get("summary", ""),
             "method": compliance_report.get("method", "ai"),
-            "verified_at": datetime.utcnow().isoformat(),
+            "verified_at": _utcnow().isoformat(),
         }
 
     async def save_score(
@@ -140,7 +145,7 @@ class ScoringEngine:
         if dossier:
             dossier.compliance_score = score_summary["global_score"]
             dossier.compliance_details = score_summary
-            dossier.last_verified_at = datetime.utcnow()
+            dossier.last_verified_at = _utcnow()
             await db.commit()
 
     async def get_dossier_documents_summary(

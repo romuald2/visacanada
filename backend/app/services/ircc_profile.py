@@ -6,8 +6,13 @@ pre-filled profiles for admin submission assistance.
 """
 
 import re
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Any
+
+
+def _utcnow() -> datetime:
+    """Naive UTC timestamp (matches the rest of the codebase)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 # IRCC form field mappings per program
@@ -228,7 +233,7 @@ class IRCCProfileService:
             "missing_required": missing_required,
             "validation_errors": validation_errors,
             "is_ready": len(missing_required) == 0 and len(validation_errors) == 0,
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": _utcnow().isoformat(),
         }
 
     def get_submission_guide(self, program_category: str) -> list[dict[str, Any]]:
