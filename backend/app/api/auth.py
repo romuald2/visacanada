@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.rate_limit import auth_limiter, client_ip
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -71,8 +72,12 @@ def require_role(*roles: UserRole):
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
+async def register(
+    user_data: UserCreate, request: Request, db: AsyncSession = Depends(get_db)
+):
     """Register a new user."""
+    auth_limiter.check(f"register:{client_ip(request)}")
+
     # Check if email already exists
     result = await db.execute(select(User).where(User.email == user_data.email))
     if result.scalar_one_or_none() is not None:
@@ -81,12 +86,13 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
             detail="Un compte avec cet email existe déjà",
         )
 
-    # Create user
+    # Create user. Self-registration always yields a `candidat`; elevated
+    # roles (consultant/admin) are provisioned by an admin, never self-served.
     user = User(
         email=user_data.email,
         hashed_password=hash_password(user_data.password),
         full_name=user_data.full_name,
-        role=user_data.role,
+        role=UserRole.candidat,
     )
     db.add(user)
     await db.flush()
@@ -95,8 +101,15 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(credentials: UserLogin, db: AsyncSession = Depends(get_db)):
+async def login(
+    credentials: UserLogin, request: Request, db: AsyncSession = Depends(get_db)
+):
     """Authenticate and return tokens."""
+    # Throttle by IP and by targeted account to slow credential stuffing.
+    ip = client_ip(request)
+    auth_limiter.check(f"login-ip:{ip}")
+    auth_limiter.check(f"login-user:{credentials.email.lower()}")
+
     result = await db.execute(select(User).where(User.email == credentials.email))
     user = result.scalar_one_or_none()
 
@@ -111,6 +124,10 @@ async def login(credentials: UserLogin, db: AsyncSession = Depends(get_db)):
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Compte désactivé",
         )
+
+    # Successful auth clears the counters for this IP/account.
+    auth_limiter.reset(f"login-ip:{ip}")
+    auth_limiter.reset(f"login-user:{credentials.email.lower()}")
 
     token_data = {"sub": str(user.id), "email": user.email, "role": user.role.value}
 
@@ -127,8 +144,12 @@ async def get_me(current_user: User = Depends(get_current_user)):
 
 
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh_token(body: RefreshTokenRequest, db: AsyncSession = Depends(get_db)):
+async def refresh_token(
+    body: RefreshTokenRequest, request: Request, db: AsyncSession = Depends(get_db)
+):
     """Refresh access token using refresh token."""
+    auth_limiter.check(f"refresh:{client_ip(request)}")
+
     payload = verify_token(body.refresh_token, token_type="refresh")
     if payload is None:
         raise HTTPException(

@@ -31,17 +31,21 @@ app = FastAPI(
     title=settings.app_name,
     description="AI-powered immigration management platform for Canada",
     version="0.1.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    # Interactive docs are disabled in production to avoid exposing the schema.
+    docs_url=None if settings.is_production else "/docs",
+    redoc_url=None if settings.is_production else "/redoc",
+    openapi_url=None if settings.is_production else "/openapi.json",
 )
 
-# CORS
+# CORS: explicit allowlist of origins, methods and headers. Credentials are
+# enabled, so the origin must never be a wildcard (enforced in config for prod).
+_cors_origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins.split(","),
+    allow_origins=_cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 # Routers

@@ -1,4 +1,9 @@
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
+
+# Sentinel default for the JWT signing key. This value is intentionally
+# insecure and is rejected at startup in production (see _validate_security).
+_INSECURE_SECRET_DEFAULT = "change-me-in-production"
 
 
 class Settings(BaseSettings):
@@ -6,14 +11,16 @@ class Settings(BaseSettings):
 
     app_name: str = "VisaCanada"
     app_env: str = "development"
-    debug: bool = True
+    debug: bool = False
 
     # Server
     backend_host: str = "0.0.0.0"
     backend_port: int = 8000
 
     # Security
-    secret_key: str = "change-me-in-production"
+    # Must be overridden via the SECRET_KEY env var. In production the app
+    # refuses to boot with the insecure default or a too-short key.
+    secret_key: str = _INSECURE_SECRET_DEFAULT
     cors_origins: str = "http://localhost:3000"
 
     # JWT
@@ -68,6 +75,32 @@ class Settings(BaseSettings):
     stripe_currency: str = "cad"
 
     model_config = {"env_file": ".env", "extra": "ignore"}
+
+    @property
+    def is_production(self) -> bool:
+        return self.app_env.lower() in ("production", "prod")
+
+    @model_validator(mode="after")
+    def _validate_security(self) -> "Settings":
+        """Fail fast on insecure security configuration in production."""
+        if self.is_production:
+            if self.secret_key == _INSECURE_SECRET_DEFAULT:
+                raise ValueError(
+                    "SECRET_KEY must be set to a strong secret in production "
+                    "(the default 'change-me-in-production' is not allowed)."
+                )
+            if len(self.secret_key) < 32:
+                raise ValueError(
+                    "SECRET_KEY must be at least 32 characters in production."
+                )
+            if "*" in self.cors_origins:
+                raise ValueError(
+                    "CORS origins cannot contain '*' with credentials enabled "
+                    "in production; set an explicit allowlist."
+                )
+            if self.debug:
+                raise ValueError("debug must be disabled in production.")
+        return self
 
 
 settings = Settings()

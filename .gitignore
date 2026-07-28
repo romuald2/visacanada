@@ -55,6 +55,9 @@ coverage/
 htmlcov/
 .coverage
 .pytest_cache/
+test.db
+*.sqlite
+*.sqlite3
 
 # Alembic
 alembic/versions/*.pyc

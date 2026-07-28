@@ -7,9 +7,11 @@ from app.models.user import UserRole
 
 class UserCreate(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=8, max_length=128)
+    # bcrypt only uses the first 72 bytes; cap here to avoid silent truncation.
+    password: str = Field(min_length=8, max_length=72)
     full_name: str = Field(min_length=2, max_length=255)
-    role: UserRole = UserRole.candidat
+    # NOTE: role is intentionally NOT accepted here. Public self-registration
+    # always creates a `candidat`; elevated roles are assigned only by an admin.
 
 
 class UserLogin(BaseModel):

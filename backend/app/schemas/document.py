@@ -41,3 +41,25 @@ class DocumentResponse(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class DocumentCandidateResponse(BaseModel):
+    """Document view for candidates: internal scoring/analysis is withheld.
+
+    compliance_score, fraud_score, extracted_data and ai_analysis are internal
+    signals and must never be exposed to the candidate (mirrors the portal).
+    """
+
+    id: int
+    dossier_id: int
+    document_type: DocumentType
+    status: DocumentStatus
+    file_name: str
+    file_size_bytes: int | None
+    mime_type: str | None
+    rejection_reason: str | None
+    expires_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}

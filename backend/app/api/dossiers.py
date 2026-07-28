@@ -12,7 +12,12 @@ from app.models.candidate import Candidate
 from app.models.dossier import Dossier, DossierStatus
 from app.models.program import Program
 from app.models.user import User, UserRole
-from app.schemas.dossier import DossierCreate, DossierResponse, DossierUpdate
+from app.schemas.dossier import (
+    DossierCandidateResponse,
+    DossierCreate,
+    DossierResponse,
+    DossierUpdate,
+)
 
 router = APIRouter(prefix="/dossiers", tags=["dossiers"])
 
@@ -107,8 +112,14 @@ async def list_dossiers(
     result = await db.execute(query)
     dossiers = result.scalars().all()
 
+    # Candidates receive a redacted view without internal scoring/assignment.
+    if current_user.role == UserRole.candidat:
+        items = [DossierCandidateResponse.model_validate(d) for d in dossiers]
+    else:
+        items = [DossierResponse.model_validate(d) for d in dossiers]
+
     return {
-        "items": [DossierResponse.model_validate(d) for d in dossiers],
+        "items": items,
         "total": total,
         "page": page,
         "size": size,
@@ -116,13 +127,16 @@ async def list_dossiers(
     }
 
 
-@router.get("/{dossier_id}", response_model=DossierResponse)
+@router.get("/{dossier_id}", response_model=DossierResponse | DossierCandidateResponse)
 async def get_dossier(
     dossier_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Get a dossier by ID."""
+    """Get a dossier by ID.
+
+    Candidates receive a redacted view without internal scoring/assignment.
+    """
     result = await db.execute(
         select(Dossier).where(Dossier.id == dossier_id)
     )
@@ -145,6 +159,8 @@ async def get_dossier(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Accès non autorisé",
             )
+        # Withhold internal scoring/assignment from the candidate.
+        return DossierCandidateResponse.model_validate(dossier)
 
     return dossier
 

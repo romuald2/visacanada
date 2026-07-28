@@ -35,3 +35,23 @@ class DossierResponse(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class DossierCandidateResponse(BaseModel):
+    """Redacted dossier view for candidates.
+
+    Withholds internal scoring (compliance_score), staff assignment, and
+    internal consultant notes.
+    """
+
+    id: int
+    candidate_id: int
+    program_id: int
+    status: DossierStatus
+    reference_number: str | None
+    submitted_at: datetime | None
+    decision_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}

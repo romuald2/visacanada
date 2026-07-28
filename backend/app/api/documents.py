@@ -10,7 +10,12 @@ from app.models.candidate import Candidate
 from app.models.document import Document, DocumentStatus
 from app.models.dossier import Dossier
 from app.models.user import User, UserRole
-from app.schemas.document import DocumentCreate, DocumentResponse, DocumentUpdate
+from app.schemas.document import (
+    DocumentCandidateResponse,
+    DocumentCreate,
+    DocumentResponse,
+    DocumentUpdate,
+)
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -109,8 +114,14 @@ async def list_documents(
     result = await db.execute(query)
     documents = result.scalars().all()
 
+    # Candidates receive a redacted view without internal scoring/analysis.
+    if current_user.role == UserRole.candidat:
+        items = [DocumentCandidateResponse.model_validate(d) for d in documents]
+    else:
+        items = [DocumentResponse.model_validate(d) for d in documents]
+
     return {
-        "items": [DocumentResponse.model_validate(d) for d in documents],
+        "items": items,
         "total": total,
         "page": page,
         "size": size,
@@ -118,13 +129,16 @@ async def list_documents(
     }
 
 
-@router.get("/{document_id}", response_model=DocumentResponse)
+@router.get("/{document_id}", response_model=DocumentResponse | DocumentCandidateResponse)
 async def get_document(
     document_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Get a document by ID."""
+    """Get a document by ID.
+
+    Candidates receive a redacted view without internal scoring/analysis.
+    """
     result = await db.execute(
         select(Document).where(Document.id == document_id)
     )
@@ -151,6 +165,8 @@ async def get_document(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Accès non autorisé",
             )
+        # Withhold internal scoring/analysis from the candidate.
+        return DocumentCandidateResponse.model_validate(document)
 
     return document
 
