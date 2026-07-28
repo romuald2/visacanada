@@ -34,3 +34,25 @@ export interface UpcomingResponse {
   window_days: number;
   items: UpcomingAlert[];
 }
+
+// --- Auth ---
+
+export type UserRole = "admin" | "consultant" | "candidat";
+
+/** Authenticated user, from GET /auth/me. */
+export interface User {
+  id: number;
+  email: string;
+  full_name: string;
+  role: UserRole;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Token pair from POST /auth/login and /auth/refresh. */
+export interface TokenResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+}
