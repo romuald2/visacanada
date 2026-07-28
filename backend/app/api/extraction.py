@@ -19,6 +19,7 @@ from app.services.ocr_service import (
     OCRExtractionError,
     azure_ocr_service,
 )
+from app.services.document_validity import compute_expiry_from_extraction
 from app.services.s3_storage import S3StorageError, s3_storage
 from app.services.tesseract_service import tesseract_service
 
@@ -123,6 +124,13 @@ async def extract_document_data(
     # Store extracted data
     document.extracted_data = json.dumps(extracted_data, ensure_ascii=False)
     document.status = DocumentStatus.verified
+
+    # Auto-populate expiry from the extracted payload (explicit expiry date
+    # if present, otherwise derived from issue date + type validity window).
+    expiry = compute_expiry_from_extraction(document.document_type, extracted_data)
+    if expiry is not None:
+        document.expires_at = expiry
+
     await db.flush()
     await db.refresh(document)
 
@@ -225,6 +233,12 @@ async def update_extracted_data(
 
     document.extracted_data = json.dumps(corrected_data, ensure_ascii=False)
     document.status = DocumentStatus.verified
+
+    # Re-derive expiry from the corrected data.
+    expiry = compute_expiry_from_extraction(document.document_type, corrected_data)
+    if expiry is not None:
+        document.expires_at = expiry
+
     await db.flush()
     await db.refresh(document)
 

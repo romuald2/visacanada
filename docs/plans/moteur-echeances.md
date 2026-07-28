@@ -47,9 +47,11 @@ Chaque lot est indépendant, testable, et apporte de la valeur seul. Ordre recom
 
 **Tests** : `test_alert_tasks.py` (scan + livraison mockée), extension de `test_alerts.py`. Le service de livraison se teste avec les mocks email/whatsapp déjà en place.
 
-### Lot 2 — Calcul automatique des expirations de documents
+### Lot 2 — Calcul automatique des expirations de documents ✅ LIVRÉ
 
 **But** : peupler `Document.expires_at` automatiquement pour que les scans existants aient de la matière.
+
+> Livré : `services/document_validity.py` (règles de validité + parsing de dates + `compute_expiry_from_extraction`), branchement dans `POST /extraction/{id}/extract` et `PUT /extraction/{id}/extracted-data`, script de rattrapage `scripts/backfill_document_expiry.py` (avec `--dry-run`). Tests : `test_document_validity.py` (21) + 2 tests d'intégration extraction.
 
 - **2a. Table de règles de validité** (`services/document_validity.py`)
   - Dictionnaire déclaratif : `language_test` → 24 mois, `education_credential` (ECA) → 60 mois, `medical_exam` → 12 mois, `police_certificate` → contextuel, etc.
