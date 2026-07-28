@@ -14,6 +14,12 @@ from app.models.whatsapp_notification import NotificationPreference, WhatsAppNot
 from app.models.crs_simulation import CRSSimulation
 from app.models.generated_letter import GeneratedLetter
 from app.models.alert import Alert, AlertConfig, AlertSeverity, AlertType
+from app.models.family import (
+    FamilyGroup,
+    FamilyMember,
+    FamilyRole,
+    SharedDocument,
+)
 
 __all__ = [
     "Base",
@@ -51,4 +57,8 @@ __all__ = [
     "AlertConfig",
     "AlertSeverity",
     "AlertType",
+    "FamilyGroup",
+    "FamilyMember",
+    "FamilyRole",
+    "SharedDocument",
 ]
