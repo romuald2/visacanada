@@ -18,6 +18,7 @@ from app.api.notifications import router as notifications_router
 from app.api.dashboard import router as dashboard_router
 from app.api.crs import router as crs_router
 from app.api.letters import router as letters_router
+from app.api.portal import router as portal_router
 from app.core.config import settings
 
 app = FastAPI(
@@ -55,6 +56,7 @@ app.include_router(notifications_router)
 app.include_router(dashboard_router)
 app.include_router(crs_router)
 app.include_router(letters_router)
+app.include_router(portal_router)
 
 
 @app.get("/")
