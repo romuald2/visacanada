@@ -20,6 +20,15 @@ from app.models.family import (
     FamilyRole,
     SharedDocument,
 )
+from app.models.billing import (
+    Invoice,
+    InvoiceLineItem,
+    InvoiceStatus,
+    LineItemKind,
+    Payment,
+    PaymentMethod,
+    PaymentStatus,
+)
 
 __all__ = [
     "Base",
@@ -61,4 +70,11 @@ __all__ = [
     "FamilyMember",
     "FamilyRole",
     "SharedDocument",
+    "Invoice",
+    "InvoiceLineItem",
+    "InvoiceStatus",
+    "LineItemKind",
+    "Payment",
+    "PaymentMethod",
+    "PaymentStatus",
 ]

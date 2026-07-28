@@ -57,6 +57,11 @@ class Settings(BaseSettings):
     twilio_auth_token: str = ""
     twilio_whatsapp_from: str = ""
 
+    # Stripe
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_currency: str = "cad"
+
     model_config = {"env_file": ".env", "extra": "ignore"}
 
 
