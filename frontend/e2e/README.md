@@ -30,14 +30,16 @@ E2E_BASE_URL=https://staging.visacanada.example npm run test:e2e
 
 ## Structure
 
-- `home.spec.ts` — smoke tests de la page d'accueil (fondation).
+- `auth-flow.spec.ts` — parcours d'entrée et de connexion : redirection de la
+  racine vers `/login`, erreur sur identifiants invalides, connexion réussie
+  jusqu'au tableau de bord. Les appels backend sont interceptés (`page.route`)
+  pour que la suite reste autonome (pas de backend requis).
 
 ## À étendre
 
 Au fur et à mesure de la construction de l'interface, ajouter les parcours :
 
-- Authentification (connexion, déconnexion, rôles)
-- Tableau de bord consultant
-- Portail candidat (lecture seule, téléversement de documents)
-- Facturation (création de facture, paiement)
+- Déconnexion et gardes de rôle (page admin réservée)
+- Pagination et filtres de la liste des dossiers
+- Détail d'un dossier
 - Consentement et export/suppression des données (parcours PIPEDA)

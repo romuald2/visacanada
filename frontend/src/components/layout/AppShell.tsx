@@ -13,10 +13,16 @@ const ROLE_LABELS: Record<UserRole, string> = {
 export interface AppShellProps {
   children: React.ReactNode;
   title?: string;
+  /** Optional content rendered in the header, before the user identity. */
+  headerExtra?: React.ReactNode;
 }
 
 /** Authenticated app frame: sidebar + header with user identity and logout. */
-export function AppShell({ children, title = "Tableau de bord" }: AppShellProps) {
+export function AppShell({
+  children,
+  title = "Tableau de bord",
+  headerExtra,
+}: AppShellProps) {
   const { user, logout } = useAuth();
 
   return (
@@ -47,6 +53,7 @@ export function AppShell({ children, title = "Tableau de bord" }: AppShellProps)
         <header className="flex items-center justify-between border-b border-border bg-card px-6 py-3">
           <h1 className="text-lg font-semibold text-card-foreground">{title}</h1>
           <div className="flex items-center gap-4">
+            {headerExtra}
             {user ? (
               <div className="text-right">
                 <p className="text-sm font-medium text-card-foreground">

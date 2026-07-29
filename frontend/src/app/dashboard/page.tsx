@@ -5,6 +5,7 @@ import { RequireAuth } from "@/components/auth/RequireAuth";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { AppShell } from "@/components/layout/AppShell";
 import { UpcomingDeadlines } from "@/components/deadlines/UpcomingDeadlines";
+import { CriticalBadge } from "@/components/deadlines/CriticalBadge";
 import { DossierList } from "@/components/dossiers/DossierList";
 import { getDossiers, getUpcomingDeadlines } from "@/lib/api";
 import type { DossierPage, UpcomingAlert } from "@/lib/types";
@@ -48,31 +49,34 @@ function DashboardContent() {
   }, [page, load]);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-      <div className="order-2 lg:order-1">
-        <DossierList
-          items={dossiers?.items ?? []}
-          total={dossiers?.total ?? 0}
-          page={dossiers?.page ?? page}
-          pages={dossiers?.pages ?? 0}
-          loading={loading}
-          error={error}
-          onPageChange={setPage}
-        />
+    <AppShell
+      title="Tableau de bord"
+      headerExtra={<CriticalBadge items={alerts} />}
+    >
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+        <div className="order-2 lg:order-1">
+          <DossierList
+            items={dossiers?.items ?? []}
+            total={dossiers?.total ?? 0}
+            page={dossiers?.page ?? page}
+            pages={dossiers?.pages ?? 0}
+            loading={loading}
+            error={error}
+            onPageChange={setPage}
+          />
+        </div>
+        <div className="order-1 lg:order-2">
+          <UpcomingDeadlines items={alerts} windowDays={30} />
+        </div>
       </div>
-      <div className="order-1 lg:order-2">
-        <UpcomingDeadlines items={alerts} windowDays={30} />
-      </div>
-    </div>
+    </AppShell>
   );
 }
 
 export default function DashboardPage() {
   return (
     <RequireAuth>
-      <AppShell title="Tableau de bord">
-        <DashboardContent />
-      </AppShell>
+      <DashboardContent />
     </RequireAuth>
   );
 }
