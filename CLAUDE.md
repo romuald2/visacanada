@@ -42,13 +42,19 @@ Stack complète : `cd docker && docker-compose up -d` (front 3000, API 8000, Swa
 ## Règles de test
 
 - **Backend : lancer les fichiers de tests un par un** (`python -m pytest tests/test_X.py -q`).
-  Lancer plusieurs fichiers ensemble déclenche des `OperationalError` SQLite dues aux
-  `dependency_overrides` / moteurs partagés entre modules. C'est un artefact du harnais de
-  test, pas un bug applicatif : chaque fichier passe isolément.
+  Chaque module crée son propre moteur SQLite sur le même `test.db` et réassigne
+  `app.dependency_overrides[get_db]` à l'import : dans un seul process le dernier import
+  gagne et le `drop_all` autouse d'un module supprime les tables des autres. Artefact du
+  harnais, pas un bug applicatif. La CI fait de même via une boucle sur `tests/test_*.py`.
 - `tests/conftest.py` réinitialise le `auth_limiter` (singleton process-wide) autour de chaque
   test, sinon le rate limiter en mémoire renvoie des 429 parasites.
-- Échec connu et assumé : `tests/test_auth.py::test_get_me_no_token` attend 403 alors que
-  `HTTPBearer` renvoie 401 (le code a raison, le test a tort). Ne pas le « corriger » au passage.
+- La suite est entièrement verte (495 tests). Aucun échec toléré : un test rouge est un
+  vrai signal.
+- `bcrypt` est épinglé `<5` : bcrypt 5 a supprimé `__about__.__version__` que passlib 1.7.4
+  lit encore, et passlib retombe alors sur un backend qui refuse tout hachage. Ne pas
+  désépingler sans vérifier que passlib supporte bcrypt 5.
+- Toute dépendance tierce importée doit figurer dans `pyproject.toml`. L'environnement local
+  masque les oublis ; la CI part d'un `pip install -e ".[dev]"` propre.
 - Avant de présenter un changement : lint + tests des fichiers touchés. Frontend : les trois
   commandes (`lint`, `typecheck`, `test:run`) car la CI les exige.
 
