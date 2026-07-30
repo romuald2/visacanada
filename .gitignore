@@ -64,9 +64,15 @@ htmlcov/
 test.db
 *.sqlite
 *.sqlite3
+playwright-report/
+test-results/
+playwright/.cache/
 
 # Alembic
 alembic/versions/*.pyc
+
+# Claude Code (réglages partagés versionnés, réglages locaux ignorés)
+.claude/settings.local.json
 
 # Misc
 *.log
