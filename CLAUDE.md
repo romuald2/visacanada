@@ -103,8 +103,14 @@ PIPEDA + Loi 25, résidence des données au Canada (`ca-central-1`).
 - Journaliser les accès documents via `AuditLog` (kwargs `entity_type` / `entity_id`).
 - La config production échoue au démarrage sur `SECRET_KEY` faible, CORS wildcard ou `debug`.
   Ne pas contourner ces garde-fous.
-- Le rate limiter `app/core/rate_limit.py` est en mémoire par process : à porter sur Redis
-  avant la mise en production.
+- Le rate limiter `app/core/rate_limit.py` compte dans Redis (`REDIS_URL`) pour que tous les
+  workers partagent la même fenêtre. Si Redis est injoignable il se dégrade vers un compteur
+  par process (protection réduite mais l'authentification reste disponible) : ce repli est
+  volontaire, ne pas le transformer en échec dur.
+- Envoi d'email sortant : `app/services/smtp_sender.py`, configuré par `SMTP_HOST`,
+  `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_USE_TLS`. Sans `SMTP_HOST`
+  l'application se rabat sur des notifications visibles au tableau de bord uniquement.
+  Ne pas confondre avec `app/services/email_service.py`, qui lit les emails IRCC entrants.
 
 ## Git
 

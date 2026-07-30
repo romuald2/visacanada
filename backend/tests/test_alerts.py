@@ -16,6 +16,7 @@ from app.models.dossier import Dossier, DossierStatus
 from app.models.program import ImmigrationProgram, Program
 from app.models.user import Base, User, UserRole
 from app.services.alert_service import AlertService
+from app.services.smtp_sender import smtp_sender
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 engine = create_async_engine(TEST_DATABASE_URL, echo=False)
@@ -346,6 +347,65 @@ class TestAlertsAPI:
         assert body["dashboard"] >= 1
         assert body["email"] >= 1
         assert body["alerts"] >= 1
+
+    async def test_email_channel_sends_when_smtp_configured(self, client, monkeypatch):
+        sent: list[str] = []
+
+        async def _capture(to: str, subject: str, body: str):
+            sent.append(to)
+            return {"status": "sent"}
+
+        monkeypatch.setattr(smtp_sender, "_host", "smtp.example.test")
+        monkeypatch.setattr(smtp_sender, "_from", "no-reply@example.test")
+        monkeypatch.setattr(smtp_sender, "send", _capture)
+
+        await create_admin()
+        dossier_id = await make_dossier()
+        await add_document(dossier_id, DocumentType.passport, expires_in_days=50)
+
+        admin2 = await create_admin_named("admin2@alerts.com")
+        scan = await client.post("/alerts/scan", headers=admin2["headers"])
+        body = scan.json()
+
+        assert body["email"] >= 1
+        assert body["email_sent"] >= 1
+        assert len(sent) >= 1
+
+    async def test_email_channel_without_smtp_stays_dashboard_only(self, client, monkeypatch):
+        # No relay configured: the Notification row is still written, so the
+        # alert remains visible, but nothing leaves the building.
+        monkeypatch.setattr(smtp_sender, "_host", "")
+
+        await create_admin()
+        dossier_id = await make_dossier()
+        await add_document(dossier_id, DocumentType.passport, expires_in_days=50)
+
+        admin2 = await create_admin_named("admin2@alerts.com")
+        scan = await client.post("/alerts/scan", headers=admin2["headers"])
+        body = scan.json()
+
+        assert body["email"] >= 1
+        assert body["email_sent"] == 0
+
+    async def test_smtp_failure_does_not_abort_the_scan(self, client, monkeypatch):
+        async def _fail(to: str, subject: str, body: str):
+            return {"status": "failed", "error": "ConnectionRefusedError"}
+
+        monkeypatch.setattr(smtp_sender, "_host", "smtp.example.test")
+        monkeypatch.setattr(smtp_sender, "_from", "no-reply@example.test")
+        monkeypatch.setattr(smtp_sender, "send", _fail)
+
+        await create_admin()
+        dossier_id = await make_dossier()
+        await add_document(dossier_id, DocumentType.passport, expires_in_days=50)
+
+        admin2 = await create_admin_named("admin2@alerts.com")
+        scan = await client.post("/alerts/scan", headers=admin2["headers"])
+
+        assert scan.status_code == 200
+        body = scan.json()
+        assert body["email"] >= 1
+        assert body["email_sent"] == 0
 
     async def test_scan_no_deliver_flag(self, client):
         admin = await create_admin()

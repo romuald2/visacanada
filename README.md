@@ -46,7 +46,8 @@ IA/LLM:        Claude API (Anthropic)
 Agents IA:     LangGraph (orchestration multi-agents)
 RAG:           pgvector + recherche hybride
 WhatsApp:      Twilio WhatsApp Business API
-Email:         Gmail API + Microsoft Graph
+Email entrant: Gmail API + Microsoft Graph
+Email sortant: relais SMTP (alertes, rappels de paiement)
 Auth:          NextAuth.js + RBAC
 Déploiement:   AWS ca-central-1 (résidence données Canada)
 CI/CD:         GitHub Actions

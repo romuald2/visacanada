@@ -34,6 +34,7 @@ from app.models.notification import (
     NotificationType,
 )
 from app.models.user import User, UserRole
+from app.services.smtp_sender import smtp_sender
 from app.services.whatsapp_service import NotificationEvent, whatsapp_service
 
 # Thresholds (days)
@@ -447,15 +448,17 @@ class AlertService:
     async def deliver_pending(self, db: AsyncSession) -> dict[str, int]:
         """Deliver all un-notified alerts across their configured channels.
 
-        - dashboard/email → persisted as channel-tagged Notification rows
-          (the consultant dashboard reads these; there is no outbound SMTP
-          sender in this codebase, so email is surfaced the same way).
+        - dashboard → persisted as a channel-tagged Notification row, which the
+          consultant dashboard reads.
+        - email → same Notification row, plus an actual SMTP send when a relay
+          is configured. Without one it stays dashboard-visible only, and
+          `email_sent` reports how many messages really went out.
         - whatsapp → sent via Twilio when configured; skipped gracefully
           otherwise.
 
         Returns per-channel delivery counts. Marks alerts is_notified=True.
         """
-        stats = {"dashboard": 0, "email": 0, "whatsapp": 0, "alerts": 0}
+        stats = {"dashboard": 0, "email": 0, "email_sent": 0, "whatsapp": 0, "alerts": 0}
 
         result = await db.execute(
             select(Alert).where(
@@ -508,6 +511,18 @@ class AlertService:
                 )
                 stats[channel_name] += 1
                 delivered_any = True
+
+                # The email channel additionally leaves the building when a
+                # relay is configured. Best-effort: a send failure still leaves
+                # the notification visible on the dashboard.
+                if channel_name == "email" and smtp_sender.is_configured:
+                    res = await smtp_sender.send(
+                        to=recipient.email,
+                        subject=alert.title,
+                        body=alert.message,
+                    )
+                    if res.get("status") == "sent":
+                        stats["email_sent"] += 1
 
             # WhatsApp via Twilio (best-effort, degrades gracefully).
             if channels.get("whatsapp") and whatsapp_service.is_configured:

@@ -64,6 +64,16 @@ class Settings(BaseSettings):
     microsoft_client_secret: str = ""
     microsoft_redirect_uri: str = "http://localhost:8000/email/callback/outlook"
 
+    # Outbound SMTP (alert and invoice-reminder delivery). Empty host disables
+    # sending: the app degrades to dashboard-only notifications.
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from: str = ""
+    smtp_use_tls: bool = True
+    smtp_timeout_seconds: int = 10
+
     # Twilio WhatsApp
     twilio_account_sid: str = ""
     twilio_auth_token: str = ""

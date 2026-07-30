@@ -23,6 +23,10 @@ dependencies = [
     # a release that supports bcrypt 5, or the hashing backend is swapped out.
     "bcrypt<5",
     "email-validator>=2.1.0",
+    # Imported directly by app/services/smtp_sender.py (to_thread). It also
+    # arrives transitively via FastAPI, but a direct import gets a direct
+    # declaration.
+    "anyio>=4.0.0",
     "aioboto3>=13.0.0",
     "reportlab>=4.2.0",
 ]
