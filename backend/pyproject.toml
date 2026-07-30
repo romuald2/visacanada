@@ -18,7 +18,12 @@ dependencies = [
     "python-jose[cryptography]>=3.3.0",
     "passlib[bcrypt]>=1.7.4",
     "email-validator>=2.1.0",
+    "aioboto3>=13.0.0",
+    "reportlab>=4.2.0",
 ]
+# Not listed on purpose: pdf2image is an optional OCR fallback (it also needs the
+# poppler binaries) and app/services/tesseract_service.py handles its absence
+# explicitly with a user-facing message.
 
 [project.optional-dependencies]
 dev = [
