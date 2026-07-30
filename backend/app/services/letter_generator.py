@@ -11,12 +11,12 @@ from typing import Any
 
 import httpx
 
+from app.core.config import settings
+
 
 def _utcnow() -> datetime:
     """Naive UTC timestamp (matches the rest of the codebase)."""
     return datetime.now(timezone.utc).replace(tzinfo=None)
-
-from app.core.config import settings
 
 
 class LetterType(str, Enum):
@@ -262,7 +262,7 @@ class LetterGenerator:
         if program_context:
             prompt += f"Contexte du programme: {program_context}\n"
 
-        prompt += f"\nInformations du candidat:\n"
+        prompt += "\nInformations du candidat:\n"
         for key, value in candidate_data.items():
             if value:
                 prompt += f"- {key}: {value}\n"

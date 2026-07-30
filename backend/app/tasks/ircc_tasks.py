@@ -77,7 +77,7 @@ async def _notify_admins(
 ) -> int:
     """Create notifications for admin users about new IRCC updates."""
     # Find admin users
-    stmt = select(User).where(User.role == UserRole.admin, User.is_active == True)
+    stmt = select(User).where(User.role == UserRole.admin, User.is_active == True)  # noqa: E712
     result = await session.execute(stmt)
     admins = result.scalars().all()
 

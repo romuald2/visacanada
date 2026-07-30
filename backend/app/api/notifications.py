@@ -1,13 +1,12 @@
 """WhatsApp notifications API router."""
 
-from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.auth import get_current_user, require_role
+from app.api.auth import require_role
 from app.core.database import get_db
 from app.models.user import User, UserRole
 from app.models.whatsapp_notification import (
@@ -16,7 +15,6 @@ from app.models.whatsapp_notification import (
 )
 from app.services.whatsapp_service import (
     DEFAULT_PREFERENCES,
-    NotificationEvent,
     whatsapp_service,
 )
 
@@ -109,13 +107,6 @@ async def test_notification(
             status_code=400,
             detail="Numero WhatsApp non configure. Mettez a jour vos preferences.",
         )
-
-    test_data = {
-        "candidate_name": "Test",
-        "notification_type": "test",
-        "subject": "Notification de test VisaCanada",
-        "action_required": "Aucune - ceci est un test",
-    }
 
     send_result = await whatsapp_service.send_whatsapp(
         to_number=prefs.whatsapp_number,

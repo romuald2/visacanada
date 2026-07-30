@@ -1,6 +1,6 @@
 """API router for programs and requirements (IRCC knowledge base)."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -32,7 +32,7 @@ async def list_programs(
     query = select(Program)
 
     if active_only:
-        query = query.where(Program.is_active == True)
+        query = query.where(Program.is_active == True)  # noqa: E712
 
     if category:
         query = query.where(Program.category == category)
@@ -84,7 +84,7 @@ async def get_program_requirements(
     )
 
     if active_only:
-        query = query.where(ProgramRequirement.is_active == True)
+        query = query.where(ProgramRequirement.is_active == True)  # noqa: E712
 
     query = query.order_by(ProgramRequirement.sort_order, ProgramRequirement.document_name)
     result = await db.execute(query)

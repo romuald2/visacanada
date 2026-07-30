@@ -10,12 +10,9 @@ Multi-criteria analysis to detect potentially falsified documents:
 IMPORTANT: Never auto-rejects. Always flags for human review.
 """
 
-import hashlib
 import re
 from datetime import date, datetime, timezone
 from typing import Any
-
-from app.core.config import settings
 
 
 def _utcnow() -> datetime:
@@ -58,13 +55,22 @@ class FraudDetectionService:
 
     # Known PDF producers for official documents
     TRUSTED_PDF_PRODUCERS = [
-        "adobe", "microsoft", "libreoffice", "openoffice",
-        "government", "ircc", "canada",
+        "adobe",
+        "microsoft",
+        "libreoffice",
+        "openoffice",
+        "government",
+        "ircc",
+        "canada",
     ]
 
     # Suspicious PDF producers
     SUSPICIOUS_PRODUCERS = [
-        "photoshop", "gimp", "paint", "canva", "figma",
+        "photoshop",
+        "gimp",
+        "paint",
+        "canva",
+        "figma",
     ]
 
     def analyze_document(
@@ -104,9 +110,7 @@ class FraudDetectionService:
 
         # Calculate fraud score
         fraud_score = self._calculate_fraud_score(alerts)
-        requires_review = fraud_score >= 30.0 or any(
-            a.severity == "high" for a in alerts
-        )
+        requires_review = fraud_score >= 30.0 or any(a.severity == "high" for a in alerts)
 
         return {
             "fraud_score": round(fraud_score, 1),
@@ -135,13 +139,15 @@ class FraudDetectionService:
         # Check for suspicious producer/creator tools
         for suspicious in self.SUSPICIOUS_PRODUCERS:
             if suspicious in creator or suspicious in producer:
-                alerts.append(FraudAlert(
-                    category="metadata",
-                    severity="high",
-                    description=f"Document créé avec un outil de retouche d'image: {creator or producer}",
-                    confidence=0.8,
-                    details={"creator": creator, "producer": producer},
-                ))
+                alerts.append(
+                    FraudAlert(
+                        category="metadata",
+                        severity="high",
+                        description=f"Document créé avec un outil de retouche d'image: {creator or producer}",
+                        confidence=0.8,
+                        details={"creator": creator, "producer": producer},
+                    )
+                )
                 break
 
         # Check modification after creation (tampering indicator)
@@ -152,17 +158,19 @@ class FraudDetectionService:
                 if created and modified:
                     delta = (modified - created).days
                     if delta > 30:
-                        alerts.append(FraudAlert(
-                            category="metadata",
-                            severity="medium",
-                            description=f"Document modifié {delta} jours après sa création",
-                            confidence=0.6,
-                            details={
-                                "creation_date": str(creation_date),
-                                "modification_date": str(modification_date),
-                                "days_between": delta,
-                            },
-                        ))
+                        alerts.append(
+                            FraudAlert(
+                                category="metadata",
+                                severity="medium",
+                                description=f"Document modifié {delta} jours après sa création",
+                                confidence=0.6,
+                                details={
+                                    "creation_date": str(creation_date),
+                                    "modification_date": str(modification_date),
+                                    "days_between": delta,
+                                },
+                            )
+                        )
             except (ValueError, TypeError):
                 pass
 
@@ -171,25 +179,29 @@ class FraudDetectionService:
             try:
                 created = self._parse_date(creation_date)
                 if created and created.date() > date.today():
-                    alerts.append(FraudAlert(
-                        category="metadata",
-                        severity="high",
-                        description="Date de création du PDF dans le futur",
-                        confidence=0.9,
-                        details={"creation_date": str(creation_date)},
-                    ))
+                    alerts.append(
+                        FraudAlert(
+                            category="metadata",
+                            severity="high",
+                            description="Date de création du PDF dans le futur",
+                            confidence=0.9,
+                            details={"creation_date": str(creation_date)},
+                        )
+                    )
             except (ValueError, TypeError):
                 pass
 
         # Missing metadata (official docs usually have it)
         if not creator and not producer:
-            alerts.append(FraudAlert(
-                category="metadata",
-                severity="low",
-                description="Métadonnées PDF manquantes (créateur/producteur)",
-                confidence=0.3,
-                details={},
-            ))
+            alerts.append(
+                FraudAlert(
+                    category="metadata",
+                    severity="low",
+                    description="Métadonnées PDF manquantes (créateur/producteur)",
+                    confidence=0.3,
+                    details={},
+                )
+            )
 
         return alerts
 
@@ -216,10 +228,10 @@ class FraudDetectionService:
             return alerts
 
         # TD3 format (passports): 2 lines of 44 chars
-        if len(lines) == 2 and all(len(l) == 44 for l in lines):
+        if len(lines) == 2 and all(len(line) == 44 for line in lines):
             alerts.extend(self._verify_td3_mrz(lines))
         # TD1 format (ID cards): 3 lines of 30 chars
-        elif len(lines) == 3 and all(len(l) == 30 for l in lines):
+        elif len(lines) == 3 and all(len(line) == 30 for line in lines):
             alerts.extend(self._verify_td1_mrz(lines))
 
         return alerts
@@ -233,37 +245,43 @@ class FraudDetectionService:
         passport_num = line2[0:9]
         passport_check = line2[9]
         if not self._verify_check_digit(passport_num, passport_check):
-            alerts.append(FraudAlert(
-                category="mrz",
-                severity="high",
-                description="Chiffre de contrôle MRZ invalide pour le numéro de passeport",
-                confidence=0.95,
-                details={"field": "passport_number", "value": passport_num},
-            ))
+            alerts.append(
+                FraudAlert(
+                    category="mrz",
+                    severity="high",
+                    description="Chiffre de contrôle MRZ invalide pour le numéro de passeport",
+                    confidence=0.95,
+                    details={"field": "passport_number", "value": passport_num},
+                )
+            )
 
         # Date of birth: positions 13-18, check digit at 19
         dob = line2[13:19]
         dob_check = line2[19]
         if not self._verify_check_digit(dob, dob_check):
-            alerts.append(FraudAlert(
-                category="mrz",
-                severity="high",
-                description="Chiffre de contrôle MRZ invalide pour la date de naissance",
-                confidence=0.95,
-                details={"field": "date_of_birth", "value": dob},
-            ))
+            alerts.append(
+                FraudAlert(
+                    category="mrz",
+                    severity="high",
+                    description="Chiffre de contrôle MRZ invalide pour la date de naissance",
+                    confidence=0.95,
+                    details={"field": "date_of_birth", "value": dob},
+                )
+            )
 
         # Expiry date: positions 21-26, check digit at 27
         expiry = line2[21:27]
         expiry_check = line2[27]
         if not self._verify_check_digit(expiry, expiry_check):
-            alerts.append(FraudAlert(
-                category="mrz",
-                severity="high",
-                description="Chiffre de contrôle MRZ invalide pour la date d'expiration",
-                confidence=0.95,
-                details={"field": "expiry_date", "value": expiry},
-            ))
+            alerts.append(
+                FraudAlert(
+                    category="mrz",
+                    severity="high",
+                    description="Chiffre de contrôle MRZ invalide pour la date d'expiration",
+                    confidence=0.95,
+                    details={"field": "expiry_date", "value": expiry},
+                )
+            )
 
         return alerts
 
@@ -276,13 +294,15 @@ class FraudDetectionService:
         doc_num = line1[5:14]
         doc_check = line1[14]
         if not self._verify_check_digit(doc_num, doc_check):
-            alerts.append(FraudAlert(
-                category="mrz",
-                severity="high",
-                description="Chiffre de contrôle MRZ invalide pour le numéro de document",
-                confidence=0.95,
-                details={"field": "document_number", "value": doc_num},
-            ))
+            alerts.append(
+                FraudAlert(
+                    category="mrz",
+                    severity="high",
+                    description="Chiffre de contrôle MRZ invalide pour le numéro de document",
+                    confidence=0.95,
+                    details={"field": "document_number", "value": doc_num},
+                )
+            )
 
         return alerts
 
@@ -321,29 +341,35 @@ class FraudDetectionService:
                 age = (date.today() - dob).days / 365.25
 
                 if age < 0:
-                    alerts.append(FraudAlert(
-                        category="logical",
-                        severity="high",
-                        description="Date de naissance dans le futur",
-                        confidence=0.99,
-                        details={"date_of_birth": str(dob_value)},
-                    ))
+                    alerts.append(
+                        FraudAlert(
+                            category="logical",
+                            severity="high",
+                            description="Date de naissance dans le futur",
+                            confidence=0.99,
+                            details={"date_of_birth": str(dob_value)},
+                        )
+                    )
                 elif age > 150:
-                    alerts.append(FraudAlert(
-                        category="logical",
-                        severity="high",
-                        description=f"Âge impossible: {age:.0f} ans",
-                        confidence=0.99,
-                        details={"date_of_birth": str(dob_value), "calculated_age": round(age)},
-                    ))
+                    alerts.append(
+                        FraudAlert(
+                            category="logical",
+                            severity="high",
+                            description=f"Âge impossible: {age:.0f} ans",
+                            confidence=0.99,
+                            details={"date_of_birth": str(dob_value), "calculated_age": round(age)},
+                        )
+                    )
                 elif age < 16 and document_type == "passport":
-                    alerts.append(FraudAlert(
-                        category="logical",
-                        severity="medium",
-                        description=f"Candidat mineur ({age:.0f} ans) - vérification requise",
-                        confidence=0.7,
-                        details={"age": round(age)},
-                    ))
+                    alerts.append(
+                        FraudAlert(
+                            category="logical",
+                            severity="medium",
+                            description=f"Candidat mineur ({age:.0f} ans) - vérification requise",
+                            confidence=0.7,
+                            details={"age": round(age)},
+                        )
+                    )
             except (ValueError, TypeError):
                 pass
 
@@ -355,25 +381,29 @@ class FraudDetectionService:
                 issue = date.fromisoformat(str(issue_value))
                 expiry = date.fromisoformat(str(expiry_value))
                 if expiry <= issue:
-                    alerts.append(FraudAlert(
-                        category="logical",
-                        severity="high",
-                        description="Date d'expiration antérieure ou égale à la date d'émission",
-                        confidence=0.95,
-                        details={
-                            "issue_date": str(issue_value),
-                            "expiry_date": str(expiry_value),
-                        },
-                    ))
+                    alerts.append(
+                        FraudAlert(
+                            category="logical",
+                            severity="high",
+                            description="Date d'expiration antérieure ou égale à la date d'émission",
+                            confidence=0.95,
+                            details={
+                                "issue_date": str(issue_value),
+                                "expiry_date": str(expiry_value),
+                            },
+                        )
+                    )
                 # Passport validity > 10 years is suspicious
                 elif document_type == "passport" and (expiry - issue).days > 3660:
-                    alerts.append(FraudAlert(
-                        category="logical",
-                        severity="medium",
-                        description="Durée de validité du passeport supérieure à 10 ans",
-                        confidence=0.7,
-                        details={"validity_days": (expiry - issue).days},
-                    ))
+                    alerts.append(
+                        FraudAlert(
+                            category="logical",
+                            severity="medium",
+                            description="Durée de validité du passeport supérieure à 10 ans",
+                            confidence=0.7,
+                            details={"validity_days": (expiry - issue).days},
+                        )
+                    )
             except (ValueError, TypeError):
                 pass
 
@@ -384,13 +414,15 @@ class FraudDetectionService:
                 try:
                     bal = float(str(balance).replace(",", "").replace("$", "").replace(" ", ""))
                     if bal > 50_000_000:
-                        alerts.append(FraudAlert(
-                            category="logical",
-                            severity="medium",
-                            description=f"Solde bancaire inhabituellement élevé: {bal:,.0f}",
-                            confidence=0.6,
-                            details={"balance": bal},
-                        ))
+                        alerts.append(
+                            FraudAlert(
+                                category="logical",
+                                severity="medium",
+                                description=f"Solde bancaire inhabituellement élevé: {bal:,.0f}",
+                                confidence=0.6,
+                                details={"balance": bal},
+                            )
+                        )
                 except (ValueError, TypeError):
                     pass
 
@@ -401,13 +433,15 @@ class FraudDetectionService:
                 try:
                     start = date.fromisoformat(str(start_date_value))
                     if start > date.today():
-                        alerts.append(FraudAlert(
-                            category="logical",
-                            severity="medium",
-                            description="Date de début d'emploi dans le futur",
-                            confidence=0.7,
-                            details={"start_date": str(start_date_value)},
-                        ))
+                        alerts.append(
+                            FraudAlert(
+                                category="logical",
+                                severity="medium",
+                                description="Date de début d'emploi dans le futur",
+                                confidence=0.7,
+                                details={"start_date": str(start_date_value)},
+                            )
+                        )
                 except (ValueError, TypeError):
                     pass
 
@@ -421,23 +455,27 @@ class FraudDetectionService:
 
         # Suspiciously small PDF (likely just an image wrapper)
         if file_size and file_size < 5000:
-            alerts.append(FraudAlert(
-                category="metadata",
-                severity="low",
-                description="Fichier PDF anormalement petit (possible image convertie)",
-                confidence=0.4,
-                details={"file_size_bytes": file_size},
-            ))
+            alerts.append(
+                FraudAlert(
+                    category="metadata",
+                    severity="low",
+                    description="Fichier PDF anormalement petit (possible image convertie)",
+                    confidence=0.4,
+                    details={"file_size_bytes": file_size},
+                )
+            )
 
         # Very large file for a simple document
         if file_size and file_size > 50_000_000:
-            alerts.append(FraudAlert(
-                category="metadata",
-                severity="low",
-                description="Fichier anormalement volumineux",
-                confidence=0.3,
-                details={"file_size_bytes": file_size},
-            ))
+            alerts.append(
+                FraudAlert(
+                    category="metadata",
+                    severity="low",
+                    description="Fichier anormalement volumineux",
+                    confidence=0.3,
+                    details={"file_size_bytes": file_size},
+                )
+            )
 
         return alerts
 
@@ -457,25 +495,29 @@ class FraudDetectionService:
                 if not re.match(r"^[A-Z]{2}\d{6}$", passport_str):
                     # Could be other country format, low severity
                     if not re.match(r"^[A-Z0-9]{6,9}$", passport_str):
-                        alerts.append(FraudAlert(
-                            category="pattern",
-                            severity="medium",
-                            description="Format de numéro de passeport non reconnu",
-                            confidence=0.5,
-                            details={"passport_number": passport_str},
-                        ))
+                        alerts.append(
+                            FraudAlert(
+                                category="pattern",
+                                severity="medium",
+                                description="Format de numéro de passeport non reconnu",
+                                confidence=0.5,
+                                details={"passport_number": passport_str},
+                            )
+                        )
 
             # Check issuing country consistency
             country = self._get_field_value(fields, "issuing_country")
             nationality = self._get_field_value(fields, "nationality")
             if country and nationality and str(country).upper() != str(nationality).upper():
-                alerts.append(FraudAlert(
-                    category="pattern",
-                    severity="low",
-                    description="Pays émetteur différent de la nationalité",
-                    confidence=0.4,
-                    details={"issuing_country": country, "nationality": nationality},
-                ))
+                alerts.append(
+                    FraudAlert(
+                        category="pattern",
+                        severity="low",
+                        description="Pays émetteur différent de la nationalité",
+                        confidence=0.4,
+                        details={"issuing_country": country, "nationality": nationality},
+                    )
+                )
 
         # Bank statement patterns
         if document_type == "bank_statement":
@@ -486,13 +528,15 @@ class FraudDetectionService:
                 fake_indicators = ["test", "fake", "example", "demo", "sample"]
                 for indicator in fake_indicators:
                     if indicator in inst_lower:
-                        alerts.append(FraudAlert(
-                            category="pattern",
-                            severity="high",
-                            description=f"Nom d'institution bancaire suspect: {institution}",
-                            confidence=0.9,
-                            details={"institution_name": institution},
-                        ))
+                        alerts.append(
+                            FraudAlert(
+                                category="pattern",
+                                severity="high",
+                                description=f"Nom d'institution bancaire suspect: {institution}",
+                                confidence=0.9,
+                                details={"institution_name": institution},
+                            )
+                        )
                         break
 
         return alerts
@@ -573,7 +617,7 @@ class FraudDetectionService:
         ]
         for fmt in formats:
             try:
-                return datetime.strptime(str_val[:len(fmt) + 5], fmt)
+                return datetime.strptime(str_val[: len(fmt) + 5], fmt)
             except (ValueError, TypeError):
                 continue
         return None

@@ -11,13 +11,13 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.document import Document
 from app.models.dossier import Dossier
 
 
 def _utcnow() -> datetime:
     """Naive UTC timestamp (matches the rest of the codebase)."""
     return datetime.now(timezone.utc).replace(tzinfo=None)
-from app.models.document import Document
 
 
 class ScoringEngine:

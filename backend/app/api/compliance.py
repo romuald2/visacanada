@@ -42,9 +42,7 @@ async def verify_dossier_compliance(
     force_refresh = body.force_refresh if body else False
 
     # Get dossier
-    result = await db.execute(
-        select(Dossier).where(Dossier.id == dossier_id)
-    )
+    result = await db.execute(select(Dossier).where(Dossier.id == dossier_id))
     dossier = result.scalar_one_or_none()
     if not dossier:
         raise HTTPException(
@@ -57,9 +55,7 @@ async def verify_dossier_compliance(
         return dossier.compliance_details
 
     # Get program info
-    result = await db.execute(
-        select(Program).where(Program.id == dossier.program_id)
-    )
+    result = await db.execute(select(Program).where(Program.id == dossier.program_id))
     program = result.scalar_one_or_none()
     if not program:
         raise HTTPException(
@@ -71,7 +67,7 @@ async def verify_dossier_compliance(
     result = await db.execute(
         select(ProgramRequirement).where(
             ProgramRequirement.program_id == program.id,
-            ProgramRequirement.is_active == True,
+            ProgramRequirement.is_active == True,  # noqa: E712
         )
     )
     requirements = result.scalars().all()
@@ -87,16 +83,16 @@ async def verify_dossier_compliance(
     ]
 
     # Get dossier documents
-    result = await db.execute(
-        select(Document).where(Document.dossier_id == dossier_id)
-    )
+    result = await db.execute(select(Document).where(Document.dossier_id == dossier_id))
     documents = result.scalars().all()
 
     documents_data = [
         {
             "id": doc.id,
             "file_name": doc.file_name,
-            "document_type": doc.document_type.value if hasattr(doc.document_type, "value") else doc.document_type,
+            "document_type": doc.document_type.value
+            if hasattr(doc.document_type, "value")
+            else doc.document_type,
             "status": doc.status.value if hasattr(doc.status, "value") else doc.status,
         }
         for doc in documents
@@ -107,13 +103,21 @@ async def verify_dossier_compliance(
     for doc in documents:
         if doc.extracted_data:
             try:
-                fields = json.loads(doc.extracted_data) if isinstance(doc.extracted_data, str) else doc.extracted_data
+                fields = (
+                    json.loads(doc.extracted_data)
+                    if isinstance(doc.extracted_data, str)
+                    else doc.extracted_data
+                )
             except (json.JSONDecodeError, TypeError):
                 fields = {}
-            extracted_data.append({
-                "type": doc.document_type.value if hasattr(doc.document_type, "value") else doc.document_type,
-                "fields": fields,
-            })
+            extracted_data.append(
+                {
+                    "type": doc.document_type.value
+                    if hasattr(doc.document_type, "value")
+                    else doc.document_type,
+                    "fields": fields,
+                }
+            )
 
     # Run compliance verification
     compliance_report = await compliance_agent.verify_compliance(
@@ -142,9 +146,7 @@ async def get_dossier_score(
     current_user: User = Depends(get_current_user),
 ):
     """Get the latest compliance score for a dossier (cached)."""
-    result = await db.execute(
-        select(Dossier).where(Dossier.id == dossier_id)
-    )
+    result = await db.execute(select(Dossier).where(Dossier.id == dossier_id))
     dossier = result.scalar_one_or_none()
     if not dossier:
         raise HTTPException(
@@ -184,9 +186,7 @@ async def get_compliance_status(
     current_user: User = Depends(get_current_user),
 ):
     """Get a quick compliance status overview for a dossier."""
-    result = await db.execute(
-        select(Dossier).where(Dossier.id == dossier_id)
-    )
+    result = await db.execute(select(Dossier).where(Dossier.id == dossier_id))
     dossier = result.scalar_one_or_none()
     if not dossier:
         raise HTTPException(
@@ -211,22 +211,18 @@ async def get_compliance_status(
             )
 
     # Get program name
-    result = await db.execute(
-        select(Program).where(Program.id == dossier.program_id)
-    )
+    result = await db.execute(select(Program).where(Program.id == dossier.program_id))
     program = result.scalar_one()
 
     # Get documents count
-    result = await db.execute(
-        select(Document).where(Document.dossier_id == dossier_id)
-    )
+    result = await db.execute(select(Document).where(Document.dossier_id == dossier_id))
     documents = result.scalars().all()
 
     # Get mandatory requirements
     result = await db.execute(
         select(ProgramRequirement).where(
             ProgramRequirement.program_id == program.id,
-            ProgramRequirement.is_active == True,
+            ProgramRequirement.is_active == True,  # noqa: E712
             ProgramRequirement.priority == "mandatory",
         )
     )
@@ -234,11 +230,7 @@ async def get_compliance_status(
 
     # Determine missing documents
     doc_types = {d.document_type for d in documents}
-    missing = [
-        req.document_name
-        for req in mandatory_reqs
-        if req.document_type not in doc_types
-    ]
+    missing = [req.document_name for req in mandatory_reqs if req.document_type not in doc_types]
 
     # Determine status
     score = dossier.compliance_score

@@ -13,13 +13,12 @@ from app.models.candidate import Candidate
 from app.models.document import Document, DocumentStatus
 from app.models.dossier import Dossier
 from app.models.user import User, UserRole
+from app.services.document_validity import compute_expiry_from_extraction
 from app.services.ocr_service import (
-    AzureDocumentIntelligenceService,
     DocumentExtractionType,
     OCRExtractionError,
     azure_ocr_service,
 )
-from app.services.document_validity import compute_expiry_from_extraction
 from app.services.s3_storage import S3StorageError, s3_storage
 from app.services.tesseract_service import tesseract_service
 
@@ -215,14 +214,7 @@ async def update_extracted_data(
             detail="Document non trouvé",
         )
 
-    # Merge corrections with existing data
-    existing_data = {}
-    if document.extracted_data:
-        try:
-            existing_data = json.loads(document.extracted_data)
-        except json.JSONDecodeError:
-            existing_data = {}
-
+    # The submitted payload replaces the stored extraction wholesale.
     # Add manual correction metadata
     corrected_data = data.extracted_data
     corrected_data["_manual_correction"] = {

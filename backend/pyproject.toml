@@ -38,9 +38,21 @@ packages = ["app"]
 [tool.ruff]
 target-version = "py312"
 line-length = 100
+# Migration scripts are generated and then frozen: reformatting them adds churn
+# to an append-only history without improving anything that gets maintained.
+extend-exclude = ["alembic/versions"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W"]
+# The formatter still wraps code at line-length (100). This only relaxes the lint
+# ceiling for what it cannot split: single string literals such as user-facing
+# messages and __repr__, which lose readability when broken by hand.
+pycodestyle.max-line-length = 120
+
+[tool.ruff.lint.per-file-ignores]
+# Seed files are IRCC reference data (program descriptions, document lists) held
+# in long string literals. Wrapping them would obscure the content.
+"app/seeds/*" = ["E501"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

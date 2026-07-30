@@ -4,19 +4,13 @@ import json
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-
-
-def _utcnow() -> datetime:
-    """Naive UTC timestamp (matches the rest of the codebase)."""
-    return datetime.now(timezone.utc).replace(tzinfo=None)
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.auth import get_current_user, require_role
+from app.api.auth import require_role
 from app.core.database import get_db
 from app.models.audit_log import AuditLog
 from app.models.document import Document
-from app.models.dossier import Dossier
 from app.models.fraud_analysis import FraudAlertStatus, FraudAnalysis, FraudRiskLevel
 from app.models.user import User, UserRole
 from app.schemas.fraud import (
@@ -29,6 +23,11 @@ from app.schemas.fraud import (
 from app.services.fraud_detection import fraud_detection_service
 
 router = APIRouter(prefix="/fraud", tags=["fraud"])
+
+
+def _utcnow() -> datetime:
+    """Naive UTC timestamp (matches the rest of the codebase)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 @router.post(
@@ -47,9 +46,7 @@ async def analyze_document_fraud(
     Never auto-rejects. Flags suspicious documents for human review.
     """
     # Get document
-    result = await db.execute(
-        select(Document).where(Document.id == document_id)
-    )
+    result = await db.execute(select(Document).where(Document.id == document_id))
     document = result.scalar_one_or_none()
     if not document:
         raise HTTPException(
@@ -79,7 +76,11 @@ async def analyze_document_fraud(
     }
 
     # Run fraud analysis
-    doc_type = document.document_type.value if hasattr(document.document_type, "value") else document.document_type
+    doc_type = (
+        document.document_type.value
+        if hasattr(document.document_type, "value")
+        else document.document_type
+    )
     analysis_result = fraud_detection_service.analyze_document(
         document_type=doc_type,
         extracted_data=extracted_data,
@@ -109,11 +110,13 @@ async def analyze_document_fraud(
         action="fraud_analysis",
         entity_type="document",
         entity_id=document_id,
-        details=json.dumps({
-            "fraud_score": analysis_result["fraud_score"],
-            "risk_level": analysis_result["risk_level"],
-            "alerts_count": analysis_result["alerts_count"]["total"],
-        }),
+        details=json.dumps(
+            {
+                "fraud_score": analysis_result["fraud_score"],
+                "risk_level": analysis_result["risk_level"],
+                "alerts_count": analysis_result["alerts_count"]["total"],
+            }
+        ),
     )
     db.add(audit)
 
@@ -189,9 +192,7 @@ async def review_fraud_alert(
     current_user: User = Depends(require_role(UserRole.admin)),
 ):
     """Mark a fraud alert as reviewed (admin only). Never auto-rejects."""
-    result = await db.execute(
-        select(FraudAnalysis).where(FraudAnalysis.id == alert_id)
-    )
+    result = await db.execute(select(FraudAnalysis).where(FraudAnalysis.id == alert_id))
     analysis = result.scalar_one_or_none()
     if not analysis:
         raise HTTPException(
@@ -210,11 +211,13 @@ async def review_fraud_alert(
         action="fraud_review",
         entity_type="fraud_analysis",
         entity_id=alert_id,
-        details=json.dumps({
-            "status": body.status,
-            "document_id": analysis.document_id,
-            "notes": body.notes,
-        }),
+        details=json.dumps(
+            {
+                "status": body.status,
+                "document_id": analysis.document_id,
+                "notes": body.notes,
+            }
+        ),
     )
     db.add(audit)
 
@@ -234,9 +237,7 @@ async def get_fraud_stats(
 ):
     """Get fraud detection statistics (admin only)."""
     # Total analyses
-    total_result = await db.execute(
-        select(func.count(FraudAnalysis.id))
-    )
+    total_result = await db.execute(select(func.count(FraudAnalysis.id)))
     total = total_result.scalar() or 0
 
     # Pending review
@@ -251,16 +252,12 @@ async def get_fraud_stats(
     risk_counts = {}
     for level in FraudRiskLevel:
         count_result = await db.execute(
-            select(func.count(FraudAnalysis.id)).where(
-                FraudAnalysis.risk_level == level
-            )
+            select(func.count(FraudAnalysis.id)).where(FraudAnalysis.risk_level == level)
         )
         risk_counts[level.value] = count_result.scalar() or 0
 
     # Average score
-    avg_result = await db.execute(
-        select(func.avg(FraudAnalysis.fraud_score))
-    )
+    avg_result = await db.execute(select(func.avg(FraudAnalysis.fraud_score)))
     avg_score = avg_result.scalar() or 0.0
 
     return FraudStatsResponse(
