@@ -17,6 +17,11 @@ dependencies = [
     "python-multipart>=0.0.12",
     "python-jose[cryptography]>=3.3.0",
     "passlib[bcrypt]>=1.7.4",
+    # passlib 1.7.4 (its last release) reads bcrypt.__about__.__version__, which
+    # bcrypt 5 removed. passlib then falls back to a backend that rejects every
+    # hash with "password cannot be longer than 72 bytes". Cap until passlib ships
+    # a release that supports bcrypt 5, or the hashing backend is swapped out.
+    "bcrypt<5",
     "email-validator>=2.1.0",
     "aioboto3>=13.0.0",
     "reportlab>=4.2.0",

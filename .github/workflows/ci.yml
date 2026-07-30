@@ -43,11 +43,32 @@ jobs:
       - name: Lint with ruff
         run: ruff check .
 
+      # Each test module builds its own SQLite engine over the same test.db and
+      # reassigns app.dependency_overrides[get_db] at import time, so a single
+      # pytest process lets the last import win and one module's teardown drops
+      # the tables under the others. Run the files one at a time, as documented
+      # in CLAUDE.md, and report every failing file instead of stopping at the
+      # first one.
       - name: Run tests
         env:
           DATABASE_URL: postgresql+asyncpg://visacanada:test_password@localhost:5432/visacanada_test
           REDIS_URL: redis://localhost:6379/0
-        run: pytest
+        run: |
+          status=0
+          failed=()
+          for f in tests/test_*.py; do
+            echo "::group::$f"
+            if ! pytest "$f" -q; then
+              status=1
+              failed+=("$f")
+            fi
+            echo "::endgroup::"
+            rm -f test.db
+          done
+          if [ "$status" -ne 0 ]; then
+            echo "::error::Fichiers de tests en echec : ${failed[*]}"
+          fi
+          exit "$status"
 
   frontend:
     name: Frontend (Next.js)
