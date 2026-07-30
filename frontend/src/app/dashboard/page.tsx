@@ -32,7 +32,7 @@ function DashboardContent() {
         if (signal?.aborted) return;
         setAlerts(upcoming.items);
         setDossiers(dossierPage);
-      } catch (err) {
+      } catch {
         if (signal?.aborted) return;
         setError("Impossible de charger les données. Réessayez.");
       } finally {
