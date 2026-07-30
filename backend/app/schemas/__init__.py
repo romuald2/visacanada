@@ -1,3 +1,8 @@
+from app.schemas.candidate import CandidateCreate, CandidateResponse, CandidateUpdate
+from app.schemas.document import DocumentCreate, DocumentResponse, DocumentUpdate
+from app.schemas.dossier import DossierCreate, DossierResponse, DossierUpdate
+from app.schemas.notification import NotificationCreate, NotificationResponse
+from app.schemas.program import ProgramCreate, ProgramResponse
 from app.schemas.user import (
     RefreshTokenRequest,
     TokenResponse,
@@ -5,11 +10,6 @@ from app.schemas.user import (
     UserLogin,
     UserResponse,
 )
-from app.schemas.candidate import CandidateCreate, CandidateResponse, CandidateUpdate
-from app.schemas.dossier import DossierCreate, DossierResponse, DossierUpdate
-from app.schemas.document import DocumentCreate, DocumentResponse, DocumentUpdate
-from app.schemas.program import ProgramCreate, ProgramResponse
-from app.schemas.notification import NotificationCreate, NotificationResponse
 
 __all__ = [
     "RefreshTokenRequest",

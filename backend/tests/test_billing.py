@@ -3,7 +3,6 @@
 from datetime import datetime, timedelta, timezone
 
 import pytest
-
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
@@ -49,9 +48,7 @@ async def client():
 
 
 def _auth(user: User) -> dict:
-    token = create_access_token(
-        {"sub": str(user.id), "email": user.email, "role": user.role.value}
-    )
+    token = create_access_token({"sub": str(user.id), "email": user.email, "role": user.role.value})
     return {"Authorization": f"Bearer {token}"}
 
 
@@ -90,6 +87,8 @@ async def make_candidate() -> int:
         await session.commit()
         await session.refresh(c)
         return c.id
+
+
 # --- Unit tests: BillingService ---
 
 
@@ -152,8 +151,18 @@ async def test_create_invoice_computes_totals(client):
         json={
             "candidate_id": cid,
             "line_items": [
-                {"kind": "service_fee", "description": "Consultation", "quantity": 1, "unit_price": 1000.0},
-                {"kind": "government_fee", "description": "Frais IRCC", "quantity": 1, "unit_price": 850.0},
+                {
+                    "kind": "service_fee",
+                    "description": "Consultation",
+                    "quantity": 1,
+                    "unit_price": 1000.0,
+                },
+                {
+                    "kind": "government_fee",
+                    "description": "Frais IRCC",
+                    "quantity": 1,
+                    "unit_price": 850.0,
+                },
             ],
         },
     )
@@ -210,19 +219,13 @@ async def test_list_and_filter_invoices(client):
     assert resp.status_code == 200
     assert len(resp.json()) == 1
 
-    resp = await client.get(
-        f"/billing/invoices?candidate_id={cid}", headers=admin["headers"]
-    )
+    resp = await client.get(f"/billing/invoices?candidate_id={cid}", headers=admin["headers"])
     assert len(resp.json()) == 1
 
-    resp = await client.get(
-        "/billing/invoices?status=draft", headers=admin["headers"]
-    )
+    resp = await client.get("/billing/invoices?status=draft", headers=admin["headers"])
     assert len(resp.json()) == 1
 
-    resp = await client.get(
-        "/billing/invoices?status=paid", headers=admin["headers"]
-    )
+    resp = await client.get("/billing/invoices?status=paid", headers=admin["headers"])
     assert len(resp.json()) == 0
 
 
@@ -265,6 +268,8 @@ async def test_send_invoice(client):
     resp = await client.post(f"/billing/invoices/{inv_id}/send", headers=admin["headers"])
     assert resp.status_code == 200
     assert resp.json()["status"] == "sent"
+
+
 async def test_payment_intent_mock(client):
     admin = await create_admin()
     cid = await make_candidate()
@@ -279,9 +284,7 @@ async def test_payment_intent_mock(client):
         },
     )
     inv_id = created.json()["id"]
-    resp = await client.post(
-        f"/billing/invoices/{inv_id}/payment-intent", headers=admin["headers"]
-    )
+    resp = await client.post(f"/billing/invoices/{inv_id}/payment-intent", headers=admin["headers"])
     assert resp.status_code == 200
     body = resp.json()
     assert body["provider"] == "mock"
@@ -297,7 +300,12 @@ async def test_record_payment_partial_then_full(client):
         json={
             "candidate_id": cid,
             "line_items": [
-                {"kind": "government_fee", "description": "Frais", "quantity": 1, "unit_price": 100.0}
+                {
+                    "kind": "government_fee",
+                    "description": "Frais",
+                    "quantity": 1,
+                    "unit_price": 100.0,
+                }
             ],
         },
     )
@@ -386,7 +394,12 @@ async def test_dashboard(client):
         json={
             "candidate_id": cid,
             "line_items": [
-                {"kind": "government_fee", "description": "Frais", "quantity": 1, "unit_price": 200.0}
+                {
+                    "kind": "government_fee",
+                    "description": "Frais",
+                    "quantity": 1,
+                    "unit_price": 200.0,
+                }
             ],
         },
     )

@@ -19,88 +19,367 @@ def _utcnow() -> datetime:
 IRCC_FIELD_MAPPINGS = {
     "express_entry": {
         "personal_info": [
-            {"ircc_field": "family_name", "source": "last_name", "required": True, "label": "Nom de famille"},
-            {"ircc_field": "given_name", "source": "first_name", "required": True, "label": "Prenom"},
-            {"ircc_field": "date_of_birth", "source": "date_of_birth", "required": True, "label": "Date de naissance", "format": "YYYY-MM-DD"},
-            {"ircc_field": "country_of_birth", "source": "country_of_birth", "required": True, "label": "Pays de naissance"},
-            {"ircc_field": "country_of_citizenship", "source": "nationality", "required": True, "label": "Pays de citoyennete"},
+            {
+                "ircc_field": "family_name",
+                "source": "last_name",
+                "required": True,
+                "label": "Nom de famille",
+            },
+            {
+                "ircc_field": "given_name",
+                "source": "first_name",
+                "required": True,
+                "label": "Prenom",
+            },
+            {
+                "ircc_field": "date_of_birth",
+                "source": "date_of_birth",
+                "required": True,
+                "label": "Date de naissance",
+                "format": "YYYY-MM-DD",
+            },
+            {
+                "ircc_field": "country_of_birth",
+                "source": "country_of_birth",
+                "required": True,
+                "label": "Pays de naissance",
+            },
+            {
+                "ircc_field": "country_of_citizenship",
+                "source": "nationality",
+                "required": True,
+                "label": "Pays de citoyennete",
+            },
             {"ircc_field": "sex", "source": "sex", "required": True, "label": "Sexe"},
-            {"ircc_field": "marital_status", "source": "marital_status", "required": True, "label": "Etat civil"},
-            {"ircc_field": "email", "source": "email", "required": True, "label": "Adresse courriel"},
+            {
+                "ircc_field": "marital_status",
+                "source": "marital_status",
+                "required": True,
+                "label": "Etat civil",
+            },
+            {
+                "ircc_field": "email",
+                "source": "email",
+                "required": True,
+                "label": "Adresse courriel",
+            },
             {"ircc_field": "phone", "source": "phone", "required": False, "label": "Telephone"},
         ],
         "passport_info": [
-            {"ircc_field": "passport_number", "source": "passport_number", "required": True, "label": "Numero de passeport"},
-            {"ircc_field": "passport_country", "source": "issuing_country", "required": True, "label": "Pays de delivrance"},
-            {"ircc_field": "passport_issue_date", "source": "issue_date", "required": True, "label": "Date de delivrance", "format": "YYYY-MM-DD"},
-            {"ircc_field": "passport_expiry_date", "source": "expiry_date", "required": True, "label": "Date d'expiration", "format": "YYYY-MM-DD"},
+            {
+                "ircc_field": "passport_number",
+                "source": "passport_number",
+                "required": True,
+                "label": "Numero de passeport",
+            },
+            {
+                "ircc_field": "passport_country",
+                "source": "issuing_country",
+                "required": True,
+                "label": "Pays de delivrance",
+            },
+            {
+                "ircc_field": "passport_issue_date",
+                "source": "issue_date",
+                "required": True,
+                "label": "Date de delivrance",
+                "format": "YYYY-MM-DD",
+            },
+            {
+                "ircc_field": "passport_expiry_date",
+                "source": "expiry_date",
+                "required": True,
+                "label": "Date d'expiration",
+                "format": "YYYY-MM-DD",
+            },
         ],
         "education": [
-            {"ircc_field": "highest_education_level", "source": "education_level", "required": True, "label": "Niveau d'etudes"},
-            {"ircc_field": "field_of_study", "source": "field_of_study", "required": False, "label": "Domaine d'etudes"},
-            {"ircc_field": "institution_name", "source": "institution_name", "required": False, "label": "Etablissement"},
-            {"ircc_field": "education_country", "source": "education_country", "required": False, "label": "Pays des etudes"},
-            {"ircc_field": "graduation_date", "source": "graduation_date", "required": False, "label": "Date d'obtention", "format": "YYYY-MM-DD"},
+            {
+                "ircc_field": "highest_education_level",
+                "source": "education_level",
+                "required": True,
+                "label": "Niveau d'etudes",
+            },
+            {
+                "ircc_field": "field_of_study",
+                "source": "field_of_study",
+                "required": False,
+                "label": "Domaine d'etudes",
+            },
+            {
+                "ircc_field": "institution_name",
+                "source": "institution_name",
+                "required": False,
+                "label": "Etablissement",
+            },
+            {
+                "ircc_field": "education_country",
+                "source": "education_country",
+                "required": False,
+                "label": "Pays des etudes",
+            },
+            {
+                "ircc_field": "graduation_date",
+                "source": "graduation_date",
+                "required": False,
+                "label": "Date d'obtention",
+                "format": "YYYY-MM-DD",
+            },
         ],
         "language": [
-            {"ircc_field": "first_language_test_type", "source": "test_type", "required": True, "label": "Type de test"},
-            {"ircc_field": "listening_score", "source": "listening", "required": True, "label": "Score ecoute"},
-            {"ircc_field": "reading_score", "source": "reading", "required": True, "label": "Score lecture"},
-            {"ircc_field": "writing_score", "source": "writing", "required": True, "label": "Score ecriture"},
-            {"ircc_field": "speaking_score", "source": "speaking", "required": True, "label": "Score expression orale"},
-            {"ircc_field": "test_date", "source": "test_date", "required": True, "label": "Date du test", "format": "YYYY-MM-DD"},
+            {
+                "ircc_field": "first_language_test_type",
+                "source": "test_type",
+                "required": True,
+                "label": "Type de test",
+            },
+            {
+                "ircc_field": "listening_score",
+                "source": "listening",
+                "required": True,
+                "label": "Score ecoute",
+            },
+            {
+                "ircc_field": "reading_score",
+                "source": "reading",
+                "required": True,
+                "label": "Score lecture",
+            },
+            {
+                "ircc_field": "writing_score",
+                "source": "writing",
+                "required": True,
+                "label": "Score ecriture",
+            },
+            {
+                "ircc_field": "speaking_score",
+                "source": "speaking",
+                "required": True,
+                "label": "Score expression orale",
+            },
+            {
+                "ircc_field": "test_date",
+                "source": "test_date",
+                "required": True,
+                "label": "Date du test",
+                "format": "YYYY-MM-DD",
+            },
         ],
         "work_experience": [
-            {"ircc_field": "noc_code", "source": "noc_code", "required": True, "label": "Code CNP/NOC"},
-            {"ircc_field": "job_title", "source": "job_title", "required": True, "label": "Titre du poste"},
-            {"ircc_field": "employer_name", "source": "employer_name", "required": True, "label": "Employeur"},
-            {"ircc_field": "work_start_date", "source": "start_date", "required": True, "label": "Date de debut", "format": "YYYY-MM-DD"},
-            {"ircc_field": "work_end_date", "source": "end_date", "required": False, "label": "Date de fin", "format": "YYYY-MM-DD"},
-            {"ircc_field": "work_country", "source": "work_country", "required": False, "label": "Pays de travail"},
+            {
+                "ircc_field": "noc_code",
+                "source": "noc_code",
+                "required": True,
+                "label": "Code CNP/NOC",
+            },
+            {
+                "ircc_field": "job_title",
+                "source": "job_title",
+                "required": True,
+                "label": "Titre du poste",
+            },
+            {
+                "ircc_field": "employer_name",
+                "source": "employer_name",
+                "required": True,
+                "label": "Employeur",
+            },
+            {
+                "ircc_field": "work_start_date",
+                "source": "start_date",
+                "required": True,
+                "label": "Date de debut",
+                "format": "YYYY-MM-DD",
+            },
+            {
+                "ircc_field": "work_end_date",
+                "source": "end_date",
+                "required": False,
+                "label": "Date de fin",
+                "format": "YYYY-MM-DD",
+            },
+            {
+                "ircc_field": "work_country",
+                "source": "work_country",
+                "required": False,
+                "label": "Pays de travail",
+            },
         ],
     },
     "study_permit": {
         "personal_info": [
-            {"ircc_field": "family_name", "source": "last_name", "required": True, "label": "Nom de famille"},
-            {"ircc_field": "given_name", "source": "first_name", "required": True, "label": "Prenom"},
-            {"ircc_field": "date_of_birth", "source": "date_of_birth", "required": True, "label": "Date de naissance", "format": "YYYY-MM-DD"},
-            {"ircc_field": "country_of_citizenship", "source": "nationality", "required": True, "label": "Pays de citoyennete"},
+            {
+                "ircc_field": "family_name",
+                "source": "last_name",
+                "required": True,
+                "label": "Nom de famille",
+            },
+            {
+                "ircc_field": "given_name",
+                "source": "first_name",
+                "required": True,
+                "label": "Prenom",
+            },
+            {
+                "ircc_field": "date_of_birth",
+                "source": "date_of_birth",
+                "required": True,
+                "label": "Date de naissance",
+                "format": "YYYY-MM-DD",
+            },
+            {
+                "ircc_field": "country_of_citizenship",
+                "source": "nationality",
+                "required": True,
+                "label": "Pays de citoyennete",
+            },
             {"ircc_field": "sex", "source": "sex", "required": True, "label": "Sexe"},
-            {"ircc_field": "email", "source": "email", "required": True, "label": "Adresse courriel"},
+            {
+                "ircc_field": "email",
+                "source": "email",
+                "required": True,
+                "label": "Adresse courriel",
+            },
         ],
         "passport_info": [
-            {"ircc_field": "passport_number", "source": "passport_number", "required": True, "label": "Numero de passeport"},
-            {"ircc_field": "passport_expiry_date", "source": "expiry_date", "required": True, "label": "Date d'expiration", "format": "YYYY-MM-DD"},
+            {
+                "ircc_field": "passport_number",
+                "source": "passport_number",
+                "required": True,
+                "label": "Numero de passeport",
+            },
+            {
+                "ircc_field": "passport_expiry_date",
+                "source": "expiry_date",
+                "required": True,
+                "label": "Date d'expiration",
+                "format": "YYYY-MM-DD",
+            },
         ],
         "study_info": [
-            {"ircc_field": "dli_number", "source": "dli_number", "required": True, "label": "Numero DLI"},
-            {"ircc_field": "program_name", "source": "program_name", "required": True, "label": "Nom du programme"},
-            {"ircc_field": "program_start_date", "source": "start_date", "required": True, "label": "Date de debut", "format": "YYYY-MM-DD"},
-            {"ircc_field": "program_end_date", "source": "end_date", "required": True, "label": "Date de fin", "format": "YYYY-MM-DD"},
+            {
+                "ircc_field": "dli_number",
+                "source": "dli_number",
+                "required": True,
+                "label": "Numero DLI",
+            },
+            {
+                "ircc_field": "program_name",
+                "source": "program_name",
+                "required": True,
+                "label": "Nom du programme",
+            },
+            {
+                "ircc_field": "program_start_date",
+                "source": "start_date",
+                "required": True,
+                "label": "Date de debut",
+                "format": "YYYY-MM-DD",
+            },
+            {
+                "ircc_field": "program_end_date",
+                "source": "end_date",
+                "required": True,
+                "label": "Date de fin",
+                "format": "YYYY-MM-DD",
+            },
         ],
         "financial": [
-            {"ircc_field": "proof_of_funds_amount", "source": "balance", "required": True, "label": "Montant preuve de fonds"},
-            {"ircc_field": "bank_name", "source": "institution_name", "required": False, "label": "Institution bancaire"},
+            {
+                "ircc_field": "proof_of_funds_amount",
+                "source": "balance",
+                "required": True,
+                "label": "Montant preuve de fonds",
+            },
+            {
+                "ircc_field": "bank_name",
+                "source": "institution_name",
+                "required": False,
+                "label": "Institution bancaire",
+            },
         ],
     },
     "work_permit": {
         "personal_info": [
-            {"ircc_field": "family_name", "source": "last_name", "required": True, "label": "Nom de famille"},
-            {"ircc_field": "given_name", "source": "first_name", "required": True, "label": "Prenom"},
-            {"ircc_field": "date_of_birth", "source": "date_of_birth", "required": True, "label": "Date de naissance", "format": "YYYY-MM-DD"},
-            {"ircc_field": "country_of_citizenship", "source": "nationality", "required": True, "label": "Pays de citoyennete"},
-            {"ircc_field": "current_country", "source": "current_country", "required": True, "label": "Pays de residence actuel"},
+            {
+                "ircc_field": "family_name",
+                "source": "last_name",
+                "required": True,
+                "label": "Nom de famille",
+            },
+            {
+                "ircc_field": "given_name",
+                "source": "first_name",
+                "required": True,
+                "label": "Prenom",
+            },
+            {
+                "ircc_field": "date_of_birth",
+                "source": "date_of_birth",
+                "required": True,
+                "label": "Date de naissance",
+                "format": "YYYY-MM-DD",
+            },
+            {
+                "ircc_field": "country_of_citizenship",
+                "source": "nationality",
+                "required": True,
+                "label": "Pays de citoyennete",
+            },
+            {
+                "ircc_field": "current_country",
+                "source": "current_country",
+                "required": True,
+                "label": "Pays de residence actuel",
+            },
         ],
         "passport_info": [
-            {"ircc_field": "passport_number", "source": "passport_number", "required": True, "label": "Numero de passeport"},
-            {"ircc_field": "passport_expiry_date", "source": "expiry_date", "required": True, "label": "Date d'expiration", "format": "YYYY-MM-DD"},
+            {
+                "ircc_field": "passport_number",
+                "source": "passport_number",
+                "required": True,
+                "label": "Numero de passeport",
+            },
+            {
+                "ircc_field": "passport_expiry_date",
+                "source": "expiry_date",
+                "required": True,
+                "label": "Date d'expiration",
+                "format": "YYYY-MM-DD",
+            },
         ],
         "employment_info": [
-            {"ircc_field": "lmia_number", "source": "lmia_number", "required": True, "label": "Numero EIMT/LMIA"},
-            {"ircc_field": "employer_name", "source": "employer_name", "required": True, "label": "Nom de l'employeur"},
-            {"ircc_field": "job_title", "source": "job_title", "required": True, "label": "Titre du poste"},
-            {"ircc_field": "noc_code", "source": "noc_code", "required": True, "label": "Code CNP/NOC"},
-            {"ircc_field": "work_start_date", "source": "start_date", "required": True, "label": "Date de debut", "format": "YYYY-MM-DD"},
+            {
+                "ircc_field": "lmia_number",
+                "source": "lmia_number",
+                "required": True,
+                "label": "Numero EIMT/LMIA",
+            },
+            {
+                "ircc_field": "employer_name",
+                "source": "employer_name",
+                "required": True,
+                "label": "Nom de l'employeur",
+            },
+            {
+                "ircc_field": "job_title",
+                "source": "job_title",
+                "required": True,
+                "label": "Titre du poste",
+            },
+            {
+                "ircc_field": "noc_code",
+                "source": "noc_code",
+                "required": True,
+                "label": "Code CNP/NOC",
+            },
+            {
+                "ircc_field": "work_start_date",
+                "source": "start_date",
+                "required": True,
+                "label": "Date de debut",
+                "format": "YYYY-MM-DD",
+            },
             {"ircc_field": "salary", "source": "salary", "required": False, "label": "Salaire"},
         ],
     },
@@ -109,26 +388,93 @@ IRCC_FIELD_MAPPINGS = {
 # Step-by-step submission guides per program
 SUBMISSION_GUIDES = {
     "express_entry": [
-        {"step": 1, "title": "Creer un compte GCKey", "url": "https://www.canada.ca/fr/immigration-refugies-citoyennete/services/demande/compte.html"},
-        {"step": 2, "title": "Remplir le profil Entree express", "description": "Entrer les informations personnelles, education, experience de travail et competences linguistiques."},
-        {"step": 3, "title": "Soumettre le profil au bassin", "description": "Apres soumission, le profil recoit un score CRS et entre dans le bassin de candidats."},
-        {"step": 4, "title": "Recevoir une ITA", "description": "Si selectionne lors d'un tirage, une Invitation a Presenter une Demande (ITA) est emise."},
-        {"step": 5, "title": "Soumettre la demande complete", "description": "60 jours pour soumettre tous les documents requis apres reception de l'ITA."},
+        {
+            "step": 1,
+            "title": "Creer un compte GCKey",
+            "url": "https://www.canada.ca/fr/immigration-refugies-citoyennete/services/demande/compte.html",
+        },
+        {
+            "step": 2,
+            "title": "Remplir le profil Entree express",
+            "description": (
+                "Entrer les informations personnelles, education, experience de travail "
+                "et competences linguistiques."
+            ),
+        },
+        {
+            "step": 3,
+            "title": "Soumettre le profil au bassin",
+            "description": "Apres soumission, le profil recoit un score CRS et entre dans le bassin de candidats.",
+        },
+        {
+            "step": 4,
+            "title": "Recevoir une ITA",
+            "description": "Si selectionne lors d'un tirage, une Invitation a Presenter une Demande (ITA) est emise.",
+        },
+        {
+            "step": 5,
+            "title": "Soumettre la demande complete",
+            "description": "60 jours pour soumettre tous les documents requis apres reception de l'ITA.",
+        },
     ],
     "study_permit": [
-        {"step": 1, "title": "Obtenir une lettre d'acceptation", "description": "Recevoir une lettre d'acceptation d'un etablissement designe (DLI)."},
-        {"step": 2, "title": "Creer un compte en ligne", "url": "https://www.canada.ca/fr/immigration-refugies-citoyennete/services/etudier-canada/permis-etudes.html"},
-        {"step": 3, "title": "Remplir le formulaire IMM 1294", "description": "Formulaire de demande de permis d'etudes."},
-        {"step": 4, "title": "Joindre les documents requis", "description": "Passeport, lettre d'acceptation, preuves financieres, photos."},
-        {"step": 5, "title": "Payer les frais", "description": "Frais de traitement et donnees biometriques."},
-        {"step": 6, "title": "Soumettre la demande", "description": "Soumettre en ligne et attendre la decision."},
+        {
+            "step": 1,
+            "title": "Obtenir une lettre d'acceptation",
+            "description": "Recevoir une lettre d'acceptation d'un etablissement designe (DLI).",
+        },
+        {
+            "step": 2,
+            "title": "Creer un compte en ligne",
+            "url": "https://www.canada.ca/fr/immigration-refugies-citoyennete/services/etudier-canada/permis-etudes.html",
+        },
+        {
+            "step": 3,
+            "title": "Remplir le formulaire IMM 1294",
+            "description": "Formulaire de demande de permis d'etudes.",
+        },
+        {
+            "step": 4,
+            "title": "Joindre les documents requis",
+            "description": "Passeport, lettre d'acceptation, preuves financieres, photos.",
+        },
+        {
+            "step": 5,
+            "title": "Payer les frais",
+            "description": "Frais de traitement et donnees biometriques.",
+        },
+        {
+            "step": 6,
+            "title": "Soumettre la demande",
+            "description": "Soumettre en ligne et attendre la decision.",
+        },
     ],
     "work_permit": [
-        {"step": 1, "title": "Obtenir une EIMT/LMIA approuvee", "description": "L'employeur doit obtenir une Etude d'Impact sur le Marche du Travail positive."},
-        {"step": 2, "title": "Creer un compte en ligne", "url": "https://www.canada.ca/fr/immigration-refugies-citoyennete/services/travailler-canada/permis.html"},
-        {"step": 3, "title": "Remplir le formulaire IMM 1295", "description": "Formulaire de demande de permis de travail."},
-        {"step": 4, "title": "Joindre les documents", "description": "Passeport, offre d'emploi, EIMT, qualifications."},
-        {"step": 5, "title": "Payer et soumettre", "description": "Payer les frais et soumettre la demande."},
+        {
+            "step": 1,
+            "title": "Obtenir une EIMT/LMIA approuvee",
+            "description": "L'employeur doit obtenir une Etude d'Impact sur le Marche du Travail positive.",
+        },
+        {
+            "step": 2,
+            "title": "Creer un compte en ligne",
+            "url": "https://www.canada.ca/fr/immigration-refugies-citoyennete/services/travailler-canada/permis.html",
+        },
+        {
+            "step": 3,
+            "title": "Remplir le formulaire IMM 1295",
+            "description": "Formulaire de demande de permis de travail.",
+        },
+        {
+            "step": 4,
+            "title": "Joindre les documents",
+            "description": "Passeport, offre d'emploi, EIMT, qualifications.",
+        },
+        {
+            "step": 5,
+            "title": "Payer et soumettre",
+            "description": "Payer les frais et soumettre la demande.",
+        },
     ],
 }
 
@@ -196,28 +542,34 @@ class IRCCProfileService:
                     filled_count += 1
                     error = self._validate_field(ircc_field, value, fmt)
                     if error:
-                        validation_errors.append({
+                        validation_errors.append(
+                            {
+                                "field": ircc_field,
+                                "label": label,
+                                "value": str(value),
+                                "error": error,
+                            }
+                        )
+                elif required:
+                    missing_required.append(
+                        {
                             "field": ircc_field,
                             "label": label,
-                            "value": str(value),
-                            "error": error,
-                        })
-                elif required:
-                    missing_required.append({
-                        "field": ircc_field,
-                        "label": label,
-                        "section": section_name,
-                    })
+                            "section": section_name,
+                        }
+                    )
 
-                section_fields.append({
-                    "ircc_field": ircc_field,
-                    "label": label,
-                    "value": value,
-                    "required": required,
-                    "filled": value is not None,
-                    "valid": error is None if value else None,
-                    "format": fmt,
-                })
+                section_fields.append(
+                    {
+                        "ircc_field": ircc_field,
+                        "label": label,
+                        "value": value,
+                        "required": required,
+                        "filled": value is not None,
+                        "valid": error is None if value else None,
+                        "format": fmt,
+                    }
+                )
 
             sections[section_name] = section_fields
 

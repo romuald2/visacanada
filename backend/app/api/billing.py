@@ -88,9 +88,7 @@ async def create_invoice(
     current_user: User = Depends(_roles),
 ):
     """Create an invoice with line items; totals are computed automatically."""
-    cand = await db.execute(
-        select(Candidate).where(Candidate.id == body.candidate_id)
-    )
+    cand = await db.execute(select(Candidate).where(Candidate.id == body.candidate_id))
     if cand.scalar_one_or_none() is None:
         raise HTTPException(status_code=404, detail="Candidat non trouve")
 
@@ -280,7 +278,9 @@ async def payment_reminders(
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     result = await db.execute(
         select(Invoice).where(
-            Invoice.status.in_([InvoiceStatus.sent, InvoiceStatus.partially_paid, InvoiceStatus.overdue])
+            Invoice.status.in_(
+                [InvoiceStatus.sent, InvoiceStatus.partially_paid, InvoiceStatus.overdue]
+            )
         )
     )
     invoices = result.scalars().all()

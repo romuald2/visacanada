@@ -7,15 +7,14 @@ permit expiries. The alert engine scans open deadlines and emits alerts at
 type-specific thresholds.
 """
 
-from datetime import datetime
 import enum
+from datetime import datetime
 
 from sqlalchemy import (
     Boolean,
     DateTime,
     Enum,
     ForeignKey,
-    String,
     Text,
     func,
 )

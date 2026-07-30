@@ -1,20 +1,20 @@
 """Tests for IRCC profile pre-fill system."""
 
 import json
-import pytest
 
+import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.database import get_db
 from app.core.security import create_access_token, hash_password
 from app.main import app
-from app.models.user import Base, User, UserRole
 from app.models.candidate import Candidate
-from app.models.dossier import Dossier, DossierStatus
 from app.models.document import Document, DocumentStatus, DocumentType
-from app.models.program import Program, ImmigrationProgram
-from app.services.ircc_profile import IRCCProfileService, ircc_profile_service
+from app.models.dossier import Dossier, DossierStatus
+from app.models.program import ImmigrationProgram, Program
+from app.models.user import Base, User, UserRole
+from app.services.ircc_profile import IRCCProfileService
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 engine = create_async_engine(TEST_DATABASE_URL, echo=False)
@@ -108,9 +108,7 @@ async def setup_dossier_with_docs(
             session.add(doc)
             await session.commit()
 
-        token = create_access_token(
-            {"sub": str(admin.id), "email": admin.email, "role": "admin"}
-        )
+        token = create_access_token({"sub": str(admin.id), "email": admin.email, "role": "admin"})
         headers = {"Authorization": f"Bearer {token}"}
 
         return dossier.id, headers
@@ -185,7 +183,11 @@ class TestIRCCProfileService:
         service = IRCCProfileService()
         profile = service.generate_profile(
             program_category="express_entry",
-            candidate_data={"date_of_birth": "not-a-date", "first_name": "Test", "last_name": "User"},
+            candidate_data={
+                "date_of_birth": "not-a-date",
+                "first_name": "Test",
+                "last_name": "User",
+            },
             extracted_documents=[],
         )
         errors = [e for e in profile["validation_errors"] if e["field"] == "date_of_birth"]

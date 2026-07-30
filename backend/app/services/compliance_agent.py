@@ -5,7 +5,7 @@ Checks: completeness, validity, cross-reference consistency.
 """
 
 import json
-from datetime import date, datetime
+from datetime import date
 from typing import Any
 
 import httpx
@@ -15,6 +15,7 @@ from app.core.config import settings
 
 class ComplianceVerificationError(Exception):
     """Custom exception for compliance verification failures."""
+
     pass
 
 
@@ -61,7 +62,7 @@ class ComplianceAgent:
         try:
             response = await self._call_claude(prompt)
             return self._parse_compliance_response(response)
-        except Exception as e:
+        except Exception:
             # Fallback to rule-based on API failure
             return self._rule_based_verification(
                 program_requirements, submitted_documents, extracted_data
@@ -142,9 +143,7 @@ Réponds UNIQUEMENT avec un JSON valide (pas de texte avant ou après):
         }
 
         async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(
-                self._api_url, headers=headers, json=payload
-            )
+            response = await client.post(self._api_url, headers=headers, json=payload)
 
             if response.status_code != 200:
                 raise ComplianceVerificationError(
@@ -175,9 +174,7 @@ Réponds UNIQUEMENT avec un JSON valide (pas de texte avant ou après):
                 result["global_score"] = 0.0
             return result
         except json.JSONDecodeError:
-            raise ComplianceVerificationError(
-                "Impossible de parser la réponse de l'IA"
-            )
+            raise ComplianceVerificationError("Impossible de parser la réponse de l'IA")
 
     def _rule_based_verification(
         self,
@@ -229,11 +226,13 @@ Réponds UNIQUEMENT avec un JSON valide (pas de texte avant ou après):
                 try:
                     expiry_date = date.fromisoformat(str(expiry))
                     if expiry_date < date.today():
-                        validity_issues.append({
-                            "document": "Passeport",
-                            "issue": "Document expiré",
-                            "severity": "high",
-                        })
+                        validity_issues.append(
+                            {
+                                "document": "Passeport",
+                                "issue": "Document expiré",
+                                "severity": "high",
+                            }
+                        )
                         validity_score -= 30
                 except (ValueError, TypeError):
                     pass
@@ -242,11 +241,13 @@ Réponds UNIQUEMENT avec un JSON valide (pas de texte avant ou après):
             for field_name, field_data in fields.items():
                 confidence = field_data.get("confidence", 1.0)
                 if isinstance(confidence, (int, float)) and confidence < 0.7:
-                    validity_issues.append({
-                        "document": data.get("type", "unknown"),
-                        "issue": f"Faible confiance OCR pour {field_name}: {confidence:.0%}",
-                        "severity": "medium",
-                    })
+                    validity_issues.append(
+                        {
+                            "document": data.get("type", "unknown"),
+                            "issue": f"Faible confiance OCR pour {field_name}: {confidence:.0%}",
+                            "severity": "medium",
+                        }
+                    )
                     validity_score -= 5
 
         validity_score = max(0, validity_score)
@@ -264,53 +265,59 @@ Réponds UNIQUEMENT avec un JSON valide (pas de texte avant ou après):
                 names_found.add(f"{first} {last}".upper())
 
         if len(names_found) > 1:
-            consistency_issues.append({
-                "field": "name",
-                "documents": list(names_found),
-                "issue": "Noms différents trouvés entre les documents",
-                "severity": "high",
-            })
+            consistency_issues.append(
+                {
+                    "field": "name",
+                    "documents": list(names_found),
+                    "issue": "Noms différents trouvés entre les documents",
+                    "severity": "high",
+                }
+            )
             consistency_score -= 25
 
         consistency_score = max(0, consistency_score)
 
         # Global score (weighted). Note: the API path recomputes this via
         # ScoringEngine.build_score_summary, which also caps by completeness.
-        global_score = (
-            completeness_score * 0.4
-            + validity_score * 0.3
-            + consistency_score * 0.3
-        )
+        global_score = completeness_score * 0.4 + validity_score * 0.3 + consistency_score * 0.3
 
         # Recommendations
         recommendations = []
         if missing_mandatory:
             for doc in missing_mandatory:
-                recommendations.append({
-                    "priority": "high",
-                    "action": f"Fournir le document manquant: {doc}",
-                })
+                recommendations.append(
+                    {
+                        "priority": "high",
+                        "action": f"Fournir le document manquant: {doc}",
+                    }
+                )
 
         if validity_issues:
             for issue in validity_issues:
                 if issue["severity"] == "high":
-                    recommendations.append({
-                        "priority": "high",
-                        "action": f"{issue['document']}: {issue['issue']}",
-                    })
+                    recommendations.append(
+                        {
+                            "priority": "high",
+                            "action": f"{issue['document']}: {issue['issue']}",
+                        }
+                    )
 
         if consistency_issues:
-            recommendations.append({
-                "priority": "medium",
-                "action": "Vérifier la cohérence des noms entre les documents",
-            })
+            recommendations.append(
+                {
+                    "priority": "medium",
+                    "action": "Vérifier la cohérence des noms entre les documents",
+                }
+            )
 
         if missing_optional:
             for doc in missing_optional[:3]:
-                recommendations.append({
-                    "priority": "low",
-                    "action": f"Document recommandé manquant: {doc}",
-                })
+                recommendations.append(
+                    {
+                        "priority": "low",
+                        "action": f"Document recommandé manquant: {doc}",
+                    }
+                )
 
         return {
             "global_score": round(global_score, 1),

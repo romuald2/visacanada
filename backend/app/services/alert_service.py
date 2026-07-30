@@ -13,7 +13,7 @@ scans do not create duplicates. Delivery across channels (dashboard/email/whatsa
 is driven by each dossier's AlertConfig.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import select

@@ -12,8 +12,8 @@ material to scan. Two paths:
 All datetimes are naive UTC to match the rest of the codebase.
 """
 
-from datetime import datetime, timedelta, timezone
 import json
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from app.models.document import DocumentType

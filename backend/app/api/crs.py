@@ -11,7 +11,6 @@ from app.models.candidate import Candidate
 from app.models.crs_simulation import CRSSimulation
 from app.models.user import User, UserRole
 from app.services.crs_calculator import (
-    CRSCalculator,
     CRSInput,
     LanguageScore,
     crs_calculator,

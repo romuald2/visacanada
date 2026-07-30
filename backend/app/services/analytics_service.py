@@ -64,9 +64,7 @@ class AnalyticsService:
 
         stats: dict[int, dict[str, int]] = {}
         for d in dossiers:
-            s = stats.setdefault(
-                d.program_id, {"approved": 0, "refused": 0, "total": 0}
-            )
+            s = stats.setdefault(d.program_id, {"approved": 0, "refused": 0, "total": 0})
             s["total"] += 1
             if d.status == APPROVED:
                 s["approved"] += 1
@@ -121,9 +119,7 @@ class AnalyticsService:
             "by_program": [
                 {
                     "program_id": pid,
-                    "program_name": programs[pid].name
-                    if pid in programs
-                    else "Inconnu",
+                    "program_name": programs[pid].name if pid in programs else "Inconnu",
                     "avg_days": avg(days),
                     "count": len(days),
                 }
@@ -131,10 +127,7 @@ class AnalyticsService:
             ],
         }
 
-
-    async def revenue_by_period(
-        self, db: AsyncSession, period: str = "month"
-    ) -> dict[str, Any]:
+    async def revenue_by_period(self, db: AsyncSession, period: str = "month") -> dict[str, Any]:
         """Estimated revenue grouped by period.
 
         Revenue is estimated from each dossier's program government_fee at the
@@ -164,10 +157,7 @@ class AnalyticsService:
             buckets[key] = buckets.get(key, 0.0) + fee
             total += fee
 
-        series = [
-            {"period": k, "revenue": round(v, 2)}
-            for k, v in sorted(buckets.items())
-        ]
+        series = [{"period": k, "revenue": round(v, 2)} for k, v in sorted(buckets.items())]
         return {
             "period": period,
             "total_revenue": round(total, 2),
@@ -194,9 +184,7 @@ class AnalyticsService:
         for d in active:
             program = programs.get(d.program_id)
             proc_days = (
-                program.processing_time_days
-                if program and program.processing_time_days
-                else 180
+                program.processing_time_days if program and program.processing_time_days else 180
             )
             base = _naive(d.submitted_at) or _naive(d.created_at) or now
             expected = base + timedelta(days=proc_days)
@@ -205,9 +193,7 @@ class AnalyticsService:
 
         return {
             "active_dossiers": len(active),
-            "expected_decisions": [
-                {"period": k, "count": v} for k, v in sorted(upcoming.items())
-            ],
+            "expected_decisions": [{"period": k, "count": v} for k, v in sorted(upcoming.items())],
         }
 
     # -------------------------------------------------------------------------
@@ -253,9 +239,7 @@ class AnalyticsService:
             rows = section.get("rows", [])
             if rows:
                 headers = list(rows[0].keys())
-                data = [headers] + [
-                    [str(row.get(h, "")) for h in headers] for row in rows
-                ]
+                data = [headers] + [[str(row.get(h, "")) for h in headers] for row in rows]
                 table = Table(data, hAlign="LEFT")
                 table.setStyle(
                     TableStyle(
@@ -264,7 +248,12 @@ class AnalyticsService:
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
                             ("FONTSIZE", (0, 0), (-1, -1), 9),
                             ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f0f0f5")]),
+                            (
+                                "ROWBACKGROUNDS",
+                                (0, 1),
+                                (-1, -1),
+                                [colors.white, colors.HexColor("#f0f0f5")],
+                            ),
                         ]
                     )
                 )

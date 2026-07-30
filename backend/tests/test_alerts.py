@@ -3,14 +3,13 @@
 from datetime import datetime, timedelta, timezone
 
 import pytest
-
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.database import get_db
 from app.core.security import create_access_token, hash_password
 from app.main import app
-from app.models.alert import Alert, AlertType
+from app.models.alert import AlertType
 from app.models.candidate import Candidate
 from app.models.document import Document, DocumentStatus, DocumentType
 from app.models.dossier import Dossier, DossierStatus

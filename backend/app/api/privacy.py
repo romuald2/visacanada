@@ -66,7 +66,10 @@ async def get_policy():
     return {
         "policy_version": PRIVACY_POLICY_VERSION,
         "consent_types": [
-            {"type": ct.value, "required": ct in (ConsentType.data_processing, ConsentType.document_storage)}
+            {
+                "type": ct.value,
+                "required": ct in (ConsentType.data_processing, ConsentType.document_storage),
+            }
             for ct in ConsentType
         ],
     }
@@ -85,7 +88,9 @@ async def record_consent(
     try:
         consent_type = ConsentType(body.consent_type)
     except ValueError:
-        raise HTTPException(status_code=400, detail=f"Type de consentement invalide: {body.consent_type}")
+        raise HTTPException(
+            status_code=400, detail=f"Type de consentement invalide: {body.consent_type}"
+        )
 
     # One current record per (user, type, policy_version); update if it exists.
     res = await db.execute(
@@ -127,13 +132,13 @@ async def my_consents(
     current_user: User = Depends(get_current_user),
 ):
     """List the current user's consent records."""
-    res = await db.execute(
-        select(ConsentRecord).where(ConsentRecord.user_id == current_user.id)
-    )
+    res = await db.execute(select(ConsentRecord).where(ConsentRecord.user_id == current_user.id))
     records = res.scalars().all()
     return [
         {
-            "consent_type": r.consent_type.value if hasattr(r.consent_type, "value") else r.consent_type,
+            "consent_type": r.consent_type.value
+            if hasattr(r.consent_type, "value")
+            else r.consent_type,
             "granted": r.granted,
             "policy_version": r.policy_version,
             "granted_at": r.granted_at.isoformat() if r.granted_at else None,
@@ -141,6 +146,8 @@ async def my_consents(
         }
         for r in records
     ]
+
+
 # --------------------------------------------------------------------------- #
 # Data-subject rights
 # --------------------------------------------------------------------------- #
@@ -195,7 +202,9 @@ async def report_breach(
     return {
         "id": incident.id,
         "title": incident.title,
-        "severity": incident.severity.value if hasattr(incident.severity, "value") else incident.severity,
+        "severity": incident.severity.value
+        if hasattr(incident.severity, "value")
+        else incident.severity,
         "status": incident.status.value if hasattr(incident.status, "value") else incident.status,
         "requires_notification": incident.requires_notification,
     }
@@ -207,9 +216,7 @@ async def list_breaches(
     current_user: User = Depends(_admin_roles),
 ):
     """List breach incidents (most recent first)."""
-    res = await db.execute(
-        select(BreachIncident).order_by(BreachIncident.detected_at.desc())
-    )
+    res = await db.execute(select(BreachIncident).order_by(BreachIncident.detected_at.desc()))
     incidents = res.scalars().all()
     return [
         {
@@ -235,9 +242,7 @@ async def update_breach(
     current_user: User = Depends(_admin_roles),
 ):
     """Update an incident's status and notification tracking."""
-    res = await db.execute(
-        select(BreachIncident).where(BreachIncident.id == incident_id)
-    )
+    res = await db.execute(select(BreachIncident).where(BreachIncident.id == incident_id))
     incident = res.scalar_one_or_none()
     if incident is None:
         raise HTTPException(status_code=404, detail="Incident non trouve")

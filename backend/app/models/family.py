@@ -1,10 +1,9 @@
 """Family dossier models: link multiple candidates with shared documents."""
 
-from datetime import datetime
 import enum
+from datetime import datetime
 
 from sqlalchemy import (
-    Boolean,
     DateTime,
     Enum,
     ForeignKey,
@@ -30,9 +29,7 @@ class FamilyGroup(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    principal_candidate_id: Mapped[int] = mapped_column(
-        ForeignKey("candidates.id"), nullable=False
-    )
+    principal_candidate_id: Mapped[int] = mapped_column(ForeignKey("candidates.id"), nullable=False)
     created_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -51,12 +48,8 @@ class FamilyMember(Base):
     __tablename__ = "family_members"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    family_group_id: Mapped[int] = mapped_column(
-        ForeignKey("family_groups.id"), nullable=False
-    )
-    candidate_id: Mapped[int] = mapped_column(
-        ForeignKey("candidates.id"), nullable=False
-    )
+    family_group_id: Mapped[int] = mapped_column(ForeignKey("family_groups.id"), nullable=False)
+    candidate_id: Mapped[int] = mapped_column(ForeignKey("candidates.id"), nullable=False)
     role: Mapped[FamilyRole] = mapped_column(
         Enum(FamilyRole), default=FamilyRole.autre, nullable=False
     )
@@ -74,12 +67,8 @@ class SharedDocument(Base):
     __tablename__ = "shared_documents"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    family_group_id: Mapped[int] = mapped_column(
-        ForeignKey("family_groups.id"), nullable=False
-    )
-    document_id: Mapped[int] = mapped_column(
-        ForeignKey("documents.id"), nullable=False
-    )
+    family_group_id: Mapped[int] = mapped_column(ForeignKey("family_groups.id"), nullable=False)
+    document_id: Mapped[int] = mapped_column(ForeignKey("documents.id"), nullable=False)
     shared_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     note: Mapped[str | None] = mapped_column(String(500), nullable=True)
     created_at: Mapped[datetime] = mapped_column(

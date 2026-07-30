@@ -1,7 +1,6 @@
 """Tests for the knowledge base & RAG chatbot."""
 
 import pytest
-
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
@@ -46,9 +45,7 @@ async def client():
 
 
 def _auth(user: User) -> dict:
-    token = create_access_token(
-        {"sub": str(user.id), "email": user.email, "role": user.role.value}
-    )
+    token = create_access_token({"sub": str(user.id), "email": user.email, "role": user.role.value})
     return {"Authorization": f"Bearer {token}"}
 
 
@@ -64,6 +61,8 @@ async def create_user(email: str, role: UserRole) -> dict:
         await session.commit()
         await session.refresh(u)
         return {"headers": _auth(u), "id": u.id}
+
+
 # --- Unit tests: RagService ---
 
 
@@ -113,8 +112,18 @@ def test_rank_chunks_orders_by_relevance():
     noise = svc._local_embedding("recette de cuisine tarte aux pommes")
     query_vec = svc._local_embedding("permis de travail delai")
     chunks = [
-        {"content": "recette de cuisine tarte aux pommes", "embedding": noise, "document_id": 2, "title": "N"},
-        {"content": "delai de traitement du permis de travail", "embedding": relevant, "document_id": 1, "title": "R"},
+        {
+            "content": "recette de cuisine tarte aux pommes",
+            "embedding": noise,
+            "document_id": 2,
+            "title": "N",
+        },
+        {
+            "content": "delai de traitement du permis de travail",
+            "embedding": relevant,
+            "document_id": 1,
+            "title": "R",
+        },
     ]
     ranked = svc.rank_chunks("permis de travail delai", query_vec, chunks, top_k=2)
     assert ranked[0]["document_id"] == 1
@@ -245,7 +254,8 @@ async def test_ask_creates_conversation_with_citations(client):
             "content": (
                 "Le delai de traitement d'une demande Express Entry est "
                 "generalement de six mois apres la reception de la demande complete. "
-            ) * 10,
+            )
+            * 10,
             "source_url": "https://ircc.example/delais",
         },
     )
@@ -264,9 +274,7 @@ async def test_ask_creates_conversation_with_citations(client):
 
 async def test_ask_empty_question(client):
     user = await create_user("u@kb.com", UserRole.candidat)
-    resp = await client.post(
-        "/knowledge/ask", headers=user["headers"], json={"question": "  "}
-    )
+    resp = await client.post("/knowledge/ask", headers=user["headers"], json={"question": "  "})
     assert resp.status_code == 400
 
 
@@ -290,16 +298,12 @@ async def test_conversation_history_and_isolation(client):
     conv_id = ask.json()["conversation_id"]
 
     # Owner sees full history (user + assistant messages).
-    resp = await client.get(
-        f"/knowledge/conversations/{conv_id}", headers=user_a["headers"]
-    )
+    resp = await client.get(f"/knowledge/conversations/{conv_id}", headers=user_a["headers"])
     assert resp.status_code == 200
     assert len(resp.json()["messages"]) == 2
 
     # Other user cannot access it.
-    resp = await client.get(
-        f"/knowledge/conversations/{conv_id}", headers=user_b["headers"]
-    )
+    resp = await client.get(f"/knowledge/conversations/{conv_id}", headers=user_b["headers"])
     assert resp.status_code == 404
 
     # List is scoped per user.
@@ -321,23 +325,15 @@ async def test_continue_conversation(client):
         json={"question": "Deuxieme question?", "conversation_id": conv_id},
     )
     assert second.json()["conversation_id"] == conv_id
-    resp = await client.get(
-        f"/knowledge/conversations/{conv_id}", headers=user["headers"]
-    )
+    resp = await client.get(f"/knowledge/conversations/{conv_id}", headers=user["headers"])
     assert len(resp.json()["messages"]) == 4
 
 
 async def test_delete_conversation(client):
     user = await create_user("u@kb.com", UserRole.candidat)
-    ask = await client.post(
-        "/knowledge/ask", headers=user["headers"], json={"question": "Q?"}
-    )
+    ask = await client.post("/knowledge/ask", headers=user["headers"], json={"question": "Q?"})
     conv_id = ask.json()["conversation_id"]
-    resp = await client.delete(
-        f"/knowledge/conversations/{conv_id}", headers=user["headers"]
-    )
+    resp = await client.delete(f"/knowledge/conversations/{conv_id}", headers=user["headers"])
     assert resp.status_code == 200
-    resp = await client.get(
-        f"/knowledge/conversations/{conv_id}", headers=user["headers"]
-    )
+    resp = await client.get(f"/knowledge/conversations/{conv_id}", headers=user["headers"])
     assert resp.status_code == 404

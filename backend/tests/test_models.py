@@ -1,19 +1,19 @@
 """Tests for all database models."""
 
+from datetime import date
+
 import pytest
-from datetime import date, datetime
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.models.user import Base, User, UserRole
-from app.models.program import Program, ImmigrationProgram
-from app.models.candidate import Candidate
-from app.models.dossier import Dossier, DossierStatus
-from app.models.document import Document, DocumentStatus, DocumentType
-from app.models.notification import Notification, NotificationChannel, NotificationType
 from app.models.audit_log import AuditLog
+from app.models.candidate import Candidate
+from app.models.document import Document, DocumentStatus, DocumentType
+from app.models.dossier import Dossier, DossierStatus
+from app.models.notification import Notification, NotificationChannel, NotificationType
+from app.models.program import ImmigrationProgram, Program
+from app.models.user import Base, User, UserRole
 from app.seeds import PROGRAMS_SEED
 from app.seeds.seed_programs import seed_programs
-
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 engine = create_async_engine(TEST_DATABASE_URL, echo=False)

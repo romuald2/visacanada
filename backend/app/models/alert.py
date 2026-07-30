@@ -1,15 +1,14 @@
 """Intelligent alert models: per-dossier config + generated alerts."""
 
-from datetime import datetime
 import enum
+from datetime import datetime
 
 from sqlalchemy import (
+    JSON,
     Boolean,
     DateTime,
     Enum,
     ForeignKey,
-    Integer,
-    JSON,
     String,
     Text,
     func,

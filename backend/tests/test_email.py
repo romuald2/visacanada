@@ -1,21 +1,18 @@
 """Tests for email integration system."""
 
-import json
-import pytest
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, patch, PropertyMock
+from unittest.mock import patch
 
+import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.database import get_db
 from app.core.security import create_access_token, hash_password
 from app.main import app
-from app.models.user import Base, User, UserRole
 from app.models.candidate import Candidate
-from app.models.dossier import Dossier, DossierStatus
-from app.models.program import Program, ImmigrationProgram
 from app.models.email_connection import EmailConnection, EmailProvider, IRCCEmail
+from app.models.user import Base, User, UserRole
 from app.services.email_service import EmailService, GmailService, OutlookService
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -65,9 +62,7 @@ async def setup_candidate_with_connection() -> tuple[int, int, dict]:
         await session.commit()
         await session.refresh(admin)
 
-        candidate = Candidate(
-            first_name="Jean", last_name="Dupont", email="jean@test.com"
-        )
+        candidate = Candidate(first_name="Jean", last_name="Dupont", email="jean@test.com")
         session.add(candidate)
         await session.commit()
         await session.refresh(candidate)
@@ -85,9 +80,7 @@ async def setup_candidate_with_connection() -> tuple[int, int, dict]:
         await session.commit()
         await session.refresh(connection)
 
-        token = create_access_token(
-            {"sub": str(admin.id), "email": admin.email, "role": "admin"}
-        )
+        token = create_access_token({"sub": str(admin.id), "email": admin.email, "role": "admin"})
         headers = {"Authorization": f"Bearer {token}"}
 
         return candidate.id, connection.id, headers
@@ -127,66 +120,80 @@ class TestEmailService:
     def test_parse_acknowledgement(self):
         """Parse acknowledgement notification type."""
         service = EmailService()
-        result = service.parse_ircc_email({
-            "subject": "Acknowledgement of Receipt - Application #12345",
-            "body_preview": "We have received your application.",
-        })
+        result = service.parse_ircc_email(
+            {
+                "subject": "Acknowledgement of Receipt - Application #12345",
+                "body_preview": "We have received your application.",
+            }
+        )
         assert result["notification_type"] == "acknowledgement"
 
     def test_parse_biometrics(self):
         """Parse biometrics request."""
         service = EmailService()
-        result = service.parse_ircc_email({
-            "subject": "Biometrics Instruction Letter",
-            "body_preview": "You are required to provide biometric information.",
-        })
+        result = service.parse_ircc_email(
+            {
+                "subject": "Biometrics Instruction Letter",
+                "body_preview": "You are required to provide biometric information.",
+            }
+        )
         assert result["notification_type"] == "biometrics"
         assert result["action_required"] is not None
 
     def test_parse_decision(self):
         """Parse decision notification."""
         service = EmailService()
-        result = service.parse_ircc_email({
-            "subject": "Decision Made on Your Application",
-            "body_preview": "A decision has been made. Your application has been approved.",
-        })
+        result = service.parse_ircc_email(
+            {
+                "subject": "Decision Made on Your Application",
+                "body_preview": "A decision has been made. Your application has been approved.",
+            }
+        )
         assert result["notification_type"] == "decision"
 
     def test_parse_additional_documents(self):
         """Parse request for additional documents."""
         service = EmailService()
-        result = service.parse_ircc_email({
-            "subject": "Request for Additional Documents",
-            "body_preview": "Please provide additional documents to support your application.",
-        })
+        result = service.parse_ircc_email(
+            {
+                "subject": "Request for Additional Documents",
+                "body_preview": "Please provide additional documents to support your application.",
+            }
+        )
         assert result["notification_type"] == "additional_documents"
         assert result["action_required"] is not None
 
     def test_parse_medical(self):
         """Parse medical exam request."""
         service = EmailService()
-        result = service.parse_ircc_email({
-            "subject": "Upfront Medical Exam Required",
-            "body_preview": "You must complete a medical examination.",
-        })
+        result = service.parse_ircc_email(
+            {
+                "subject": "Upfront Medical Exam Required",
+                "body_preview": "You must complete a medical examination.",
+            }
+        )
         assert result["notification_type"] == "medical"
 
     def test_parse_passport_request(self):
         """Parse passport request."""
         service = EmailService()
-        result = service.parse_ircc_email({
-            "subject": "Passport Request",
-            "body_preview": "Please send your passport for visa stamping.",
-        })
+        result = service.parse_ircc_email(
+            {
+                "subject": "Passport Request",
+                "body_preview": "Please send your passport for visa stamping.",
+            }
+        )
         assert result["notification_type"] == "passport_request"
 
     def test_parse_general_unknown(self):
         """Unknown email type defaults to general."""
         service = EmailService()
-        result = service.parse_ircc_email({
-            "subject": "Some other email",
-            "body_preview": "Random content that doesnt match.",
-        })
+        result = service.parse_ircc_email(
+            {
+                "subject": "Some other email",
+                "body_preview": "Random content that doesnt match.",
+            }
+        )
         assert result["notification_type"] == "general"
         assert result["action_required"] is None
 
@@ -368,9 +375,7 @@ class TestEmailAPI:
                 full_name="Admin3",
                 role=UserRole.admin,
             )
-            candidate = Candidate(
-                first_name="No", last_name="Connection", email="no@conn.com"
-            )
+            candidate = Candidate(first_name="No", last_name="Connection", email="no@conn.com")
             session.add_all([admin, candidate])
             await session.commit()
             await session.refresh(admin)

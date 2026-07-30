@@ -1,7 +1,7 @@
 """Billing models: invoices, line items, payments, IRCC fee tracking."""
 
-from datetime import datetime
 import enum
+from datetime import datetime
 
 from sqlalchemy import (
     DateTime,
