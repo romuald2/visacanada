@@ -59,15 +59,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The npm cache needs the lockfile to exist; setup-node fails outright when
+      # cache-dependency-path resolves to nothing (e.g. branches predating the
+      # lockfile). Gate the cache on its presence instead.
+      - name: Check for lockfile
+        id: lockfile
+        run: echo "exists=$([ -f package-lock.json ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
+          cache: ${{ steps.lockfile.outputs.exists == 'true' && 'npm' || '' }}
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        run: npm install
+        # Reproducible install when the lockfile is present; fall back otherwise.
+        run: |
+          if [ "${{ steps.lockfile.outputs.exists }}" = "true" ]; then
+            npm ci
+          else
+            npm install
+          fi
 
       - name: Lint
         run: npm run lint

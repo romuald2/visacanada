@@ -29,6 +29,12 @@ dev = [
     "aiosqlite>=0.20.0",
 ]
 
+# Several importable packages live at the project root (app, scripts, tests), so
+# setuptools' automatic discovery is ambiguous and fails the editable install.
+# Only the application package is distributable; scripts and tests are not.
+[tool.setuptools]
+packages = ["app"]
+
 [tool.ruff]
 target-version = "py312"
 line-length = 100
