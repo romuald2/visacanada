@@ -93,3 +93,13 @@ export interface DossierPage {
   size: number;
   pages: number;
 }
+
+// --- Dashboard ---
+
+/** Response from GET /dashboard/overview. */
+export interface DashboardOverview {
+  total_dossiers: number;
+  total_candidates: number;
+  average_compliance_score: number | null;
+  by_status: Record<string, number>;
+}
