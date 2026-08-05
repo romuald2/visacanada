@@ -103,3 +103,146 @@ export interface DashboardOverview {
   average_compliance_score: number | null;
   by_status: Record<string, number>;
 }
+
+// --- CRS Calculator ---
+
+export interface LanguageScore {
+  reading: number;
+  writing: number;
+  listening: number;
+  speaking: number;
+  test_type: string;
+}
+
+export interface CRSCalculateRequest {
+  age: number;
+  marital_status: string;
+  education_level: string;
+  canadian_education: string;
+  first_language: LanguageScore;
+  second_language?: LanguageScore;
+  canadian_experience_years: number;
+  foreign_experience_years: number;
+  spouse_education: string;
+  spouse_language?: LanguageScore;
+  spouse_canadian_experience_years: number;
+  has_provincial_nomination: boolean;
+  has_arranged_employment: boolean;
+  arranged_employment_noc: string;
+  has_canadian_sibling: boolean;
+  french_language_proficiency: string;
+}
+
+export interface CRSResult {
+  total_score: number;
+  breakdown: Record<string, number>;
+  clb_levels: {
+    first: Record<string, number>;
+    second?: Record<string, number>;
+  };
+  recommendations: string[];
+  recent_rounds: Array<{
+    date: string;
+    score: number;
+    program: string;
+  }>;
+  eligible_for_ita: boolean;
+}
+
+// --- Portal (Candidate self-service) ---
+
+export interface CandidateProfile {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string | null;
+  nationality: string | null;
+}
+
+export type PortalDossierStatus =
+  | "nouveau"
+  | "en_cours"
+  | "documents_manquants"
+  | "en_revision"
+  | "soumis"
+  | "approuve"
+  | "refuse"
+  | "archive";
+
+export interface PortalDossierSummary {
+  id: number;
+  status: PortalDossierStatus;
+  status_label: {
+    fr: string;
+    en: string;
+  };
+  progress: number;
+  reference_number: string | null;
+  submitted_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface PortalDossierDetail {
+  id: number;
+  status: PortalDossierStatus;
+  status_label: {
+    fr: string;
+    en: string;
+  };
+  progress: number;
+  reference_number: string | null;
+  program: {
+    id: number;
+    name: string;
+    category: string;
+  } | null;
+  submitted_at: string | null;
+  decision_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export type DocumentStatus = "uploaded" | "approved" | "rejected" | "expired";
+
+export interface ProvidedDocument {
+  id: number;
+  document_type: string;
+  file_name: string;
+  status: DocumentStatus;
+  rejection_reason: string | null;
+  uploaded_at: string | null;
+}
+
+export interface MissingDocument {
+  document_type: string;
+  document_name: string;
+  description: string | null;
+  priority: string;
+}
+
+export interface DossierDocuments {
+  dossier_id: number;
+  provided: ProvidedDocument[];
+  missing: MissingDocument[];
+  provided_count: number;
+  missing_count: number;
+}
+
+export type NotificationType =
+  | "deadline_reminder"
+  | "document_approved"
+  | "document_rejected"
+  | "status_change"
+  | "message"
+  | "system";
+
+export interface PortalNotification {
+  id: number;
+  type: NotificationType;
+  title: string;
+  message: string;
+  is_read: boolean;
+  created_at: string | null;
+}
