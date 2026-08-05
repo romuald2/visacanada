@@ -103,3 +103,50 @@ export interface DashboardOverview {
   average_compliance_score: number | null;
   by_status: Record<string, number>;
 }
+
+// --- Analytics ---
+
+export interface AnalyticsOverview {
+  active: number;
+  approved: number;
+  refused: number;
+  archived: number;
+}
+
+export interface SuccessRateByProgram {
+  program_id: number;
+  program_name: string;
+  total: number;
+  approved: number;
+  refused: number;
+  approval_rate: number;
+}
+
+export interface ProcessingTimeData {
+  overall_avg: number;
+  by_program: Array<{
+    program_id: number;
+    program_name: string;
+    avg_days: number;
+    count: number;
+  }>;
+}
+
+export interface RevenueData {
+  total: number;
+  period: string;
+  series: Array<{
+    period: string;
+    amount: number;
+  }>;
+}
+
+export interface WorkloadForecast {
+  expected_decisions_30d: number;
+  expected_decisions_90d: number;
+  by_program: Array<{
+    program_id: number;
+    program_name: string;
+    count: number;
+  }>;
+}
