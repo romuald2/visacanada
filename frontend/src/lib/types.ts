@@ -103,3 +103,48 @@ export interface DashboardOverview {
   average_compliance_score: number | null;
   by_status: Record<string, number>;
 }
+
+// --- CRS Calculator ---
+
+export interface LanguageScore {
+  reading: number;
+  writing: number;
+  listening: number;
+  speaking: number;
+  test_type: string;
+}
+
+export interface CRSCalculateRequest {
+  age: number;
+  marital_status: string;
+  education_level: string;
+  canadian_education: string;
+  first_language: LanguageScore;
+  second_language?: LanguageScore;
+  canadian_experience_years: number;
+  foreign_experience_years: number;
+  spouse_education: string;
+  spouse_language?: LanguageScore;
+  spouse_canadian_experience_years: number;
+  has_provincial_nomination: boolean;
+  has_arranged_employment: boolean;
+  arranged_employment_noc: string;
+  has_canadian_sibling: boolean;
+  french_language_proficiency: string;
+}
+
+export interface CRSResult {
+  total_score: number;
+  breakdown: Record<string, number>;
+  clb_levels: {
+    first: Record<string, number>;
+    second?: Record<string, number>;
+  };
+  recommendations: string[];
+  recent_rounds: Array<{
+    date: string;
+    score: number;
+    program: string;
+  }>;
+  eligible_for_ita: boolean;
+}
