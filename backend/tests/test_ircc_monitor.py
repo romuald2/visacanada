@@ -3,19 +3,18 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from unittest.mock import AsyncMock, patch
 
 from app.core.database import get_db
 from app.core.security import create_access_token, hash_password
 from app.main import app
-from app.models.user import Base, User, UserRole
 from app.models.ircc_update import IRCCUpdate, IRCCUpdateCategory, IRCCUpdateSource
+from app.models.user import Base, User, UserRole
 from app.services.ircc_monitor import (
     IRCCFeedParser,
     categorize_update,
     generate_external_id,
 )
-from app.tasks.ircc_tasks import _store_new_updates, _notify_admins
+from app.tasks.ircc_tasks import _notify_admins, _store_new_updates
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 engine = create_async_engine(TEST_DATABASE_URL, echo=False)
@@ -77,9 +76,7 @@ async def create_candidat() -> tuple[User, dict]:
         session.add(user)
         await session.commit()
         await session.refresh(user)
-        token = create_access_token(
-            {"sub": str(user.id), "email": user.email, "role": "candidat"}
-        )
+        token = create_access_token({"sub": str(user.id), "email": user.email, "role": "candidat"})
         return user, {"Authorization": f"Bearer {token}"}
 
 
@@ -289,9 +286,7 @@ class TestIRCCAPI:
             session.add_all([u1, u2])
             await session.commit()
 
-        response = await client.get(
-            "/ircc/updates?category=processing_time", headers=headers
-        )
+        response = await client.get("/ircc/updates?category=processing_time", headers=headers)
 
         assert response.status_code == 200
         data = response.json()
@@ -314,9 +309,7 @@ class TestIRCCAPI:
             await session.refresh(update)
             update_id = update.id
 
-        response = await client.get(
-            f"/ircc/updates/{update_id}", headers=headers
-        )
+        response = await client.get(f"/ircc/updates/{update_id}", headers=headers)
 
         assert response.status_code == 200
         assert response.json()["is_read"] is True
@@ -359,13 +352,15 @@ class TestIRCCAPI:
         _, headers = await create_admin()
 
         async with TestSessionLocal() as session:
-            session.add(IRCCUpdate(
-                title="Stats test",
-                category=IRCCUpdateCategory.policy_update,
-                source=IRCCUpdateSource.atom_feed,
-                external_id="stats1",
-                is_read=False,
-            ))
+            session.add(
+                IRCCUpdate(
+                    title="Stats test",
+                    category=IRCCUpdateCategory.policy_update,
+                    source=IRCCUpdateSource.atom_feed,
+                    external_id="stats1",
+                    is_read=False,
+                )
+            )
             await session.commit()
 
         response = await client.get("/ircc/stats", headers=headers)

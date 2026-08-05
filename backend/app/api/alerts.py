@@ -1,6 +1,6 @@
 """Intelligent alerts API."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,10 +23,18 @@ class AlertConfigUpdate(BaseModel):
 
 @router.post("/scan")
 async def run_scan(
+    deliver: bool = Query(default=True),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.admin, UserRole.consultant)),
 ):
-    """Trigger a scan of all active dossiers for alert conditions."""
+    """Trigger a scan of all active dossiers for alert conditions.
+
+    When ``deliver`` is true (default) newly-created alerts are also
+    dispatched across each dossier's configured channels.
+    """
+    if deliver:
+        stats = await alert_service.scan_and_deliver(db)
+        return {"detail": "Scan termine", **stats}
     count = await alert_service.scan_all(db)
     return {"detail": "Scan termine", "new_alerts": count}
 
@@ -63,6 +71,55 @@ async def list_alerts(
         }
         for a in alerts
     ]
+
+
+@router.get("/upcoming")
+async def upcoming_alerts(
+    days: int = Query(default=30, ge=1, le=365),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.admin, UserRole.consultant)),
+):
+    """Aggregated view of active deadlines/alerts, most urgent first.
+
+    Sorts by severity (critical → warning → info) then by how soon the
+    condition fires (``days_left`` from the alert payload).
+    """
+    stmt = (
+        select(Alert)
+        .where(Alert.is_dismissed == False)  # noqa: E712
+        .order_by(Alert.created_at.desc())
+    )
+    result = await db.execute(stmt)
+    alerts = result.scalars().all()
+
+    severity_rank = {"critical": 0, "warning": 1, "info": 2}
+
+    def _days_left(a: Alert) -> int:
+        val = (a.extra_data or {}).get("days_left")
+        return val if isinstance(val, int) else 10**6
+
+    items = [
+        {
+            "id": a.id,
+            "dossier_id": a.dossier_id,
+            "alert_type": a.alert_type.value,
+            "severity": a.severity.value,
+            "title": a.title,
+            "message": a.message,
+            "days_left": (a.extra_data or {}).get("days_left"),
+            "is_notified": a.is_notified,
+            "created_at": a.created_at.isoformat() if a.created_at else None,
+        }
+        for a in alerts
+        if _days_left(a) <= days
+    ]
+    items.sort(
+        key=lambda i: (
+            severity_rank.get(i["severity"], 3),
+            i["days_left"] if isinstance(i["days_left"], int) else 10**6,
+        )
+    )
+    return {"count": len(items), "window_days": days, "items": items}
 
 
 @router.post("/{alert_id}/dismiss")

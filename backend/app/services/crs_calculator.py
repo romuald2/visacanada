@@ -42,17 +42,21 @@ class LanguageTestType(str, Enum):
 @dataclass
 class LanguageScore:
     """Language test scores (reading, writing, listening, speaking)."""
+
     reading: float = 0
     writing: float = 0
     listening: float = 0
     speaking: float = 0
     test_type: str = "ielts"
+
+
 # PLACEHOLDER_CRS_CLASSES
 
 
 @dataclass
 class CRSInput:
     """All inputs needed for CRS calculation."""
+
     # Personal
     age: int = 30
     marital_status: str = "single"
@@ -90,20 +94,40 @@ class CRSInput:
 # IELTS to CLB mapping
 IELTS_TO_CLB = {
     "reading": [
-        (8.0, 10), (7.0, 9), (6.5, 8), (6.0, 7),
-        (5.0, 6), (4.0, 5), (3.5, 4),
+        (8.0, 10),
+        (7.0, 9),
+        (6.5, 8),
+        (6.0, 7),
+        (5.0, 6),
+        (4.0, 5),
+        (3.5, 4),
     ],
     "writing": [
-        (7.5, 10), (7.0, 9), (6.5, 8), (6.0, 7),
-        (5.5, 6), (5.0, 5), (4.0, 4),
+        (7.5, 10),
+        (7.0, 9),
+        (6.5, 8),
+        (6.0, 7),
+        (5.5, 6),
+        (5.0, 5),
+        (4.0, 4),
     ],
     "listening": [
-        (8.5, 10), (8.0, 9), (7.5, 8), (6.0, 7),
-        (5.5, 6), (5.0, 5), (4.5, 4),
+        (8.5, 10),
+        (8.0, 9),
+        (7.5, 8),
+        (6.0, 7),
+        (5.5, 6),
+        (5.0, 5),
+        (4.5, 4),
     ],
     "speaking": [
-        (7.5, 10), (7.0, 9), (6.5, 8), (6.0, 7),
-        (5.5, 6), (5.0, 5), (4.0, 4),
+        (7.5, 10),
+        (7.0, 9),
+        (6.5, 8),
+        (6.0, 7),
+        (5.5, 6),
+        (5.0, 5),
+        (4.0, 4),
     ],
 }
 
@@ -132,6 +156,8 @@ def language_to_clb(lang: LanguageScore) -> dict[str, int]:
         "listening": int(lang.listening),
         "speaking": int(lang.speaking),
     }
+
+
 # PLACEHOLDER_SCORING_TABLES
 
 
@@ -141,13 +167,34 @@ def language_to_clb(lang: LanguageScore) -> dict[str, int]:
 
 # Age points: (age, single_points, married_points)
 AGE_POINTS = {
-    17: (0, 0), 18: (99, 90), 19: (105, 95), 20: (110, 100),
-    21: (110, 100), 22: (110, 100), 23: (110, 100), 24: (110, 100),
-    25: (110, 100), 26: (110, 100), 27: (110, 100), 28: (110, 100),
-    29: (110, 100), 30: (105, 95), 31: (99, 90), 32: (94, 85),
-    33: (88, 80), 34: (83, 75), 35: (77, 70), 36: (72, 65),
-    37: (66, 60), 38: (61, 55), 39: (55, 50), 40: (50, 45),
-    41: (39, 35), 42: (28, 25), 43: (17, 15), 44: (6, 5),
+    17: (0, 0),
+    18: (99, 90),
+    19: (105, 95),
+    20: (110, 100),
+    21: (110, 100),
+    22: (110, 100),
+    23: (110, 100),
+    24: (110, 100),
+    25: (110, 100),
+    26: (110, 100),
+    27: (110, 100),
+    28: (110, 100),
+    29: (110, 100),
+    30: (105, 95),
+    31: (99, 90),
+    32: (94, 85),
+    33: (88, 80),
+    34: (83, 75),
+    35: (77, 70),
+    36: (72, 65),
+    37: (66, 60),
+    38: (61, 55),
+    39: (55, 50),
+    40: (50, 45),
+    41: (39, 35),
+    42: (28, 25),
+    43: (17, 15),
+    44: (6, 5),
     45: (0, 0),
 }
 
@@ -167,34 +214,67 @@ EDUCATION_POINTS = {
 # First official language points per CLB level (per ability)
 # (clb_level, single_points, married_points)
 FIRST_LANG_POINTS = {
-    3: (0, 0), 4: (6, 6), 5: (6, 6), 6: (9, 8),
-    7: (17, 16), 8: (23, 22), 9: (31, 29), 10: (34, 32),
+    3: (0, 0),
+    4: (6, 6),
+    5: (6, 6),
+    6: (9, 8),
+    7: (17, 16),
+    8: (23, 22),
+    9: (31, 29),
+    10: (34, 32),
 }
 
 # Second official language points per CLB level (per ability)
 SECOND_LANG_POINTS = {
-    0: (0, 0), 1: (0, 0), 2: (0, 0), 3: (0, 0), 4: (0, 0),
-    5: (1, 1), 6: (1, 1), 7: (3, 3), 8: (3, 3), 9: (6, 6), 10: (6, 6),
+    0: (0, 0),
+    1: (0, 0),
+    2: (0, 0),
+    3: (0, 0),
+    4: (0, 0),
+    5: (1, 1),
+    6: (1, 1),
+    7: (3, 3),
+    8: (3, 3),
+    9: (6, 6),
+    10: (6, 6),
 }
 
 # Canadian work experience points
 CANADIAN_EXP_POINTS = {
-    0: (0, 0), 1: (40, 35), 2: (53, 46), 3: (64, 56),
-    4: (72, 63), 5: (80, 70),
+    0: (0, 0),
+    1: (40, 35),
+    2: (53, 46),
+    3: (64, 56),
+    4: (72, 63),
+    5: (80, 70),
 }
 
 # Spouse education points
 SPOUSE_EDUCATION_POINTS = {
-    "none": 0, "secondary": 2, "one_year_post_secondary": 6,
-    "two_year_post_secondary": 7, "three_year_post_secondary": 8,
-    "bachelors": 8, "two_or_more_post_secondary": 9,
-    "masters": 10, "doctoral": 10,
+    "none": 0,
+    "secondary": 2,
+    "one_year_post_secondary": 6,
+    "two_year_post_secondary": 7,
+    "three_year_post_secondary": 8,
+    "bachelors": 8,
+    "two_or_more_post_secondary": 9,
+    "masters": 10,
+    "doctoral": 10,
 }
 
 # Spouse language points per CLB (per ability)
 SPOUSE_LANG_POINTS = {
-    0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1, 6: 1,
-    7: 3, 8: 3, 9: 5, 10: 5,
+    0: 0,
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 1,
+    6: 1,
+    7: 3,
+    8: 3,
+    9: 5,
+    10: 5,
 }
 
 # Spouse Canadian experience
@@ -205,6 +285,7 @@ SPOUSE_EXP_POINTS = {0: 0, 1: 5, 2: 7, 3: 8, 4: 9, 5: 10}
 # =============================================================================
 # Skill Transferability Points
 # =============================================================================
+
 
 def _calc_skill_transferability(
     education: str,
@@ -275,10 +356,15 @@ def _calc_skill_transferability(
 def _education_rank(level: str) -> int:
     """Rank education level for transferability scoring."""
     ranks = {
-        "none": 0, "secondary": 1, "one_year_post_secondary": 2,
-        "two_year_post_secondary": 3, "three_year_post_secondary": 4,
-        "bachelors": 4, "two_or_more_post_secondary": 5,
-        "masters": 5, "doctoral": 6,
+        "none": 0,
+        "secondary": 1,
+        "one_year_post_secondary": 2,
+        "two_year_post_secondary": 3,
+        "three_year_post_secondary": 4,
+        "bachelors": 4,
+        "two_or_more_post_secondary": 5,
+        "masters": 5,
+        "doctoral": 6,
     }
     return ranks.get(level, 0)
 
@@ -287,16 +373,37 @@ def _education_rank(level: str) -> int:
 # Main Calculator
 # =============================================================================
 
+
 class CRSCalculator:
     """Calculate CRS score from input data."""
 
     # Recent rounds for comparison (updated periodically)
     RECENT_ROUNDS = [
-        {"date": "2025-12-17", "program": "No program specified", "score": 524, "invitations": 5500},
-        {"date": "2025-12-03", "program": "No program specified", "score": 522, "invitations": 5750},
-        {"date": "2025-11-19", "program": "No program specified", "score": 529, "invitations": 4000},
+        {
+            "date": "2025-12-17",
+            "program": "No program specified",
+            "score": 524,
+            "invitations": 5500,
+        },
+        {
+            "date": "2025-12-03",
+            "program": "No program specified",
+            "score": 522,
+            "invitations": 5750,
+        },
+        {
+            "date": "2025-11-19",
+            "program": "No program specified",
+            "score": 529,
+            "invitations": 4000,
+        },
         {"date": "2025-11-05", "program": "STEM", "score": 502, "invitations": 2500},
-        {"date": "2025-10-22", "program": "No program specified", "score": 531, "invitations": 4000},
+        {
+            "date": "2025-10-22",
+            "program": "No program specified",
+            "score": 531,
+            "invitations": 4000,
+        },
         {"date": "2025-10-09", "program": "French language", "score": 410, "invitations": 3200},
     ]
 
@@ -332,8 +439,7 @@ class CRSCalculator:
             if input_data.spouse_language:
                 spouse_clb = language_to_clb(input_data.spouse_language)
                 spouse_lang_pts = sum(
-                    SPOUSE_LANG_POINTS.get(min(v, 10), 0)
-                    for v in spouse_clb.values()
+                    SPOUSE_LANG_POINTS.get(min(v, 10), 0) for v in spouse_clb.values()
                 )
             spouse_exp_pts = SPOUSE_EXP_POINTS.get(
                 min(input_data.spouse_canadian_experience_years, 5), 0
@@ -417,9 +523,7 @@ class CRSCalculator:
         }
 
         # Recommendations
-        recommendations = self._generate_recommendations(
-            input_data, first_clb, total, breakdown
-        )
+        recommendations = self._generate_recommendations(input_data, first_clb, total, breakdown)
 
         return {
             "total_score": total,
@@ -474,11 +578,16 @@ class CRSCalculator:
         gap = latest_cutoff - total
 
         if gap > 0:
-            recs.append({
-                "category": "general",
-                "message": f"Vous avez besoin de {gap} points supplementaires pour atteindre le dernier seuil ({latest_cutoff}).",
-                "priority": "high",
-            })
+            recs.append(
+                {
+                    "category": "general",
+                    "message": (
+                        f"Vous avez besoin de {gap} points supplementaires "
+                        f"pour atteindre le dernier seuil ({latest_cutoff})."
+                    ),
+                    "priority": "high",
+                }
+            )
 
         # Language improvement
         if min_clb < 9:
@@ -487,55 +596,73 @@ class CRSCalculator:
                 for v in first_clb.values()
             )
             if potential > 0:
-                recs.append({
-                    "category": "language",
-                    "message": f"Ameliorer votre score linguistique a CLB 9+ pourrait ajouter jusqu'a {potential} points.",
-                    "priority": "high" if potential >= 20 else "medium",
-                })
+                recs.append(
+                    {
+                        "category": "language",
+                        "message": (
+                            f"Ameliorer votre score linguistique a CLB 9+ "
+                            f"pourrait ajouter jusqu'a {potential} points."
+                        ),
+                        "priority": "high" if potential >= 20 else "medium",
+                    }
+                )
 
         # Canadian experience
         if input_data.canadian_experience_years < 3:
-            recs.append({
-                "category": "experience",
-                "message": "Obtenir plus d'experience canadienne augmentera significativement votre score.",
-                "priority": "medium",
-            })
+            recs.append(
+                {
+                    "category": "experience",
+                    "message": "Obtenir plus d'experience canadienne augmentera significativement votre score.",
+                    "priority": "medium",
+                }
+            )
 
         # Education upgrade
-        if input_data.education_level in ("secondary", "one_year_post_secondary", "two_year_post_secondary"):
-            recs.append({
-                "category": "education",
-                "message": "Un diplome de niveau superieur (maitrise, doctorat) peut ajouter 30-50 points.",
-                "priority": "medium",
-            })
+        if input_data.education_level in (
+            "secondary",
+            "one_year_post_secondary",
+            "two_year_post_secondary",
+        ):
+            recs.append(
+                {
+                    "category": "education",
+                    "message": "Un diplome de niveau superieur (maitrise, doctorat) peut ajouter 30-50 points.",
+                    "priority": "medium",
+                }
+            )
 
         # PNP
         if not input_data.has_provincial_nomination:
-            recs.append({
-                "category": "pnp",
-                "message": "Une nomination provinciale (PNP) ajoute 600 points et garantit une invitation.",
-                "priority": "high" if gap > 50 else "low",
-            })
+            recs.append(
+                {
+                    "category": "pnp",
+                    "message": "Une nomination provinciale (PNP) ajoute 600 points et garantit une invitation.",
+                    "priority": "high" if gap > 50 else "low",
+                }
+            )
 
         # French
         if input_data.french_language_proficiency == "none":
-            recs.append({
-                "category": "french",
-                "message": "Un score TEF/TCF CLB 7+ en francais ajoute 25-50 points bonus.",
-                "priority": "medium",
-            })
+            recs.append(
+                {
+                    "category": "french",
+                    "message": "Un score TEF/TCF CLB 7+ en francais ajoute 25-50 points bonus.",
+                    "priority": "medium",
+                }
+            )
 
         # Second language
         if not input_data.second_language:
-            recs.append({
-                "category": "second_language",
-                "message": "Passer un test dans la seconde langue officielle peut ajouter jusqu'a 24 points.",
-                "priority": "low",
-            })
+            recs.append(
+                {
+                    "category": "second_language",
+                    "message": "Passer un test dans la seconde langue officielle peut ajouter jusqu'a 24 points.",
+                    "priority": "low",
+                }
+            )
 
         return recs
 
 
 # Singleton
 crs_calculator = CRSCalculator()
-

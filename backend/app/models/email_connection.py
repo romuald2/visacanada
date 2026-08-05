@@ -23,12 +23,16 @@ class EmailConnection(Base):
     email_address: Mapped[str] = mapped_column(String(255), nullable=False)
     access_token: Mapped[str] = mapped_column(Text, nullable=False)
     refresh_token: Mapped[str | None] = mapped_column(Text, nullable=True)
-    token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    token_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     consent_given_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
-    consent_revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    consent_revoked_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -38,7 +42,9 @@ class EmailConnection(Base):
     candidate = relationship("Candidate", backref="email_connections")
 
     def __repr__(self) -> str:
-        return f"<EmailConnection(id={self.id}, provider={self.provider}, email={self.email_address})>"
+        return (
+            f"<EmailConnection(id={self.id}, provider={self.provider}, email={self.email_address})>"
+        )
 
 
 class IRCCEmail(Base):

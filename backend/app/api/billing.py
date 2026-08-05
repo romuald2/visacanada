@@ -21,6 +21,7 @@ from app.models.billing import (
 from app.models.candidate import Candidate
 from app.models.user import User, UserRole
 from app.services.billing_service import billing_service
+from app.services.smtp_sender import smtp_sender
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
@@ -88,9 +89,7 @@ async def create_invoice(
     current_user: User = Depends(_roles),
 ):
     """Create an invoice with line items; totals are computed automatically."""
-    cand = await db.execute(
-        select(Candidate).where(Candidate.id == body.candidate_id)
-    )
+    cand = await db.execute(select(Candidate).where(Candidate.id == body.candidate_id))
     if cand.scalar_one_or_none() is None:
         raise HTTPException(status_code=404, detail="Candidat non trouve")
 
@@ -280,7 +279,9 @@ async def payment_reminders(
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     result = await db.execute(
         select(Invoice).where(
-            Invoice.status.in_([InvoiceStatus.sent, InvoiceStatus.partially_paid, InvoiceStatus.overdue])
+            Invoice.status.in_(
+                [InvoiceStatus.sent, InvoiceStatus.partially_paid, InvoiceStatus.overdue]
+            )
         )
     )
     invoices = result.scalars().all()
@@ -309,6 +310,95 @@ async def payment_reminders(
         )
     await db.commit()
     return reminders
+
+
+def _reminder_subject(invoice_number: str, is_overdue: bool) -> str:
+    """Subject line for a payment reminder (candidate-facing, accented)."""
+    if is_overdue:
+        return f"Facture {invoice_number} en retard de paiement"
+    return f"Rappel de paiement - facture {invoice_number}"
+
+
+def _reminder_body(
+    first_name: str, invoice: Invoice, balance: float, is_overdue: bool
+) -> str:
+    """Reminder body. Carries no dossier detail beyond the amount due."""
+    due = invoice.due_date.date().isoformat() if invoice.due_date else "non precisee"
+    opening = (
+        f"La facture {invoice.invoice_number} est arrivée à échéance le {due} "
+        "et demeure impayée."
+        if is_overdue
+        else f"La facture {invoice.invoice_number} est payable au plus tard le {due}."
+    )
+    return (
+        f"Bonjour {first_name},\n\n"
+        f"{opening}\n\n"
+        f"Solde à régler : {balance:.2f} {invoice.currency.upper()}\n\n"
+        "Si le paiement a déjà été effectué, vous pouvez ignorer ce message.\n\n"
+        "Cordialement,\n"
+        "L'équipe VisaCanada"
+    )
+
+
+@router.post("/reminders/send")
+async def send_payment_reminders(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(_roles),
+):
+    """Email a payment reminder for every invoice with an outstanding balance.
+
+    Kept separate from ``GET /billing/reminders``: listing what is due must stay
+    free of side effects, so the actual sending is its own explicit action.
+
+    Best-effort per invoice — one unreachable address does not stop the rest.
+    Without a configured SMTP relay nothing is sent and the response says so.
+    """
+    if not smtp_sender.is_configured:
+        return {
+            "detail": "SMTP non configure, aucun rappel envoye",
+            "sent": 0,
+            "failed": 0,
+            "skipped": 0,
+        }
+
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    result = await db.execute(
+        select(Invoice).where(
+            Invoice.status.in_(
+                [InvoiceStatus.sent, InvoiceStatus.partially_paid, InvoiceStatus.overdue]
+            )
+        )
+    )
+    invoices = result.scalars().all()
+
+    sent = failed = skipped = 0
+    for inv in invoices:
+        balance = round(inv.total - inv.amount_paid, 2)
+        if balance <= 0:
+            continue
+
+        cres = await db.execute(select(Candidate).where(Candidate.id == inv.candidate_id))
+        candidate = cres.scalar_one_or_none()
+        if candidate is None or not candidate.email:
+            skipped += 1
+            continue
+
+        is_overdue = False
+        if inv.due_date is not None:
+            due = inv.due_date.replace(tzinfo=None) if inv.due_date.tzinfo else inv.due_date
+            is_overdue = due < now
+
+        res = await smtp_sender.send(
+            to=candidate.email,
+            subject=_reminder_subject(inv.invoice_number, is_overdue),
+            body=_reminder_body(candidate.first_name, inv, balance, is_overdue),
+        )
+        if res.get("status") == "sent":
+            sent += 1
+        else:
+            failed += 1
+
+    return {"detail": "Rappels traites", "sent": sent, "failed": failed, "skipped": skipped}
 
 
 @router.get("/dashboard")

@@ -1,7 +1,6 @@
 """Tests for privacy & PIPEDA compliance (consent, data rights, breaches)."""
 
 import pytest
-
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
@@ -118,10 +117,11 @@ async def test_service_export_and_erase_directly():
 
     # Verify anonymization persisted.
     async with TestSessionLocal() as session:
-        from app.models.candidate import Candidate as C
         from sqlalchemy import select as _select
 
-        rows = (await session.execute(_select(C))).scalars().all()
+        from app.models.candidate import Candidate
+
+        rows = (await session.execute(_select(Candidate))).scalars().all()
         assert rows[0].first_name == "SUPPRIME"
         assert rows[0].passport_number is None
         assert rows[0].user_id is None

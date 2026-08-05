@@ -3,7 +3,6 @@
 from datetime import datetime, timedelta, timezone
 
 import pytest
-
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
@@ -13,6 +12,7 @@ from app.main import app
 from app.models.candidate import Candidate
 from app.models.user import Base, User, UserRole
 from app.services.billing_service import BillingService
+from app.services.smtp_sender import smtp_sender
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 engine = create_async_engine(TEST_DATABASE_URL, echo=False)
@@ -49,9 +49,7 @@ async def client():
 
 
 def _auth(user: User) -> dict:
-    token = create_access_token(
-        {"sub": str(user.id), "email": user.email, "role": user.role.value}
-    )
+    token = create_access_token({"sub": str(user.id), "email": user.email, "role": user.role.value})
     return {"Authorization": f"Bearer {token}"}
 
 
@@ -90,6 +88,8 @@ async def make_candidate() -> int:
         await session.commit()
         await session.refresh(c)
         return c.id
+
+
 # --- Unit tests: BillingService ---
 
 
@@ -152,8 +152,18 @@ async def test_create_invoice_computes_totals(client):
         json={
             "candidate_id": cid,
             "line_items": [
-                {"kind": "service_fee", "description": "Consultation", "quantity": 1, "unit_price": 1000.0},
-                {"kind": "government_fee", "description": "Frais IRCC", "quantity": 1, "unit_price": 850.0},
+                {
+                    "kind": "service_fee",
+                    "description": "Consultation",
+                    "quantity": 1,
+                    "unit_price": 1000.0,
+                },
+                {
+                    "kind": "government_fee",
+                    "description": "Frais IRCC",
+                    "quantity": 1,
+                    "unit_price": 850.0,
+                },
             ],
         },
     )
@@ -210,19 +220,13 @@ async def test_list_and_filter_invoices(client):
     assert resp.status_code == 200
     assert len(resp.json()) == 1
 
-    resp = await client.get(
-        f"/billing/invoices?candidate_id={cid}", headers=admin["headers"]
-    )
+    resp = await client.get(f"/billing/invoices?candidate_id={cid}", headers=admin["headers"])
     assert len(resp.json()) == 1
 
-    resp = await client.get(
-        "/billing/invoices?status=draft", headers=admin["headers"]
-    )
+    resp = await client.get("/billing/invoices?status=draft", headers=admin["headers"])
     assert len(resp.json()) == 1
 
-    resp = await client.get(
-        "/billing/invoices?status=paid", headers=admin["headers"]
-    )
+    resp = await client.get("/billing/invoices?status=paid", headers=admin["headers"])
     assert len(resp.json()) == 0
 
 
@@ -265,6 +269,8 @@ async def test_send_invoice(client):
     resp = await client.post(f"/billing/invoices/{inv_id}/send", headers=admin["headers"])
     assert resp.status_code == 200
     assert resp.json()["status"] == "sent"
+
+
 async def test_payment_intent_mock(client):
     admin = await create_admin()
     cid = await make_candidate()
@@ -279,9 +285,7 @@ async def test_payment_intent_mock(client):
         },
     )
     inv_id = created.json()["id"]
-    resp = await client.post(
-        f"/billing/invoices/{inv_id}/payment-intent", headers=admin["headers"]
-    )
+    resp = await client.post(f"/billing/invoices/{inv_id}/payment-intent", headers=admin["headers"])
     assert resp.status_code == 200
     body = resp.json()
     assert body["provider"] == "mock"
@@ -297,7 +301,12 @@ async def test_record_payment_partial_then_full(client):
         json={
             "candidate_id": cid,
             "line_items": [
-                {"kind": "government_fee", "description": "Frais", "quantity": 1, "unit_price": 100.0}
+                {
+                    "kind": "government_fee",
+                    "description": "Frais",
+                    "quantity": 1,
+                    "unit_price": 100.0,
+                }
             ],
         },
     )
@@ -386,7 +395,12 @@ async def test_dashboard(client):
         json={
             "candidate_id": cid,
             "line_items": [
-                {"kind": "government_fee", "description": "Frais", "quantity": 1, "unit_price": 200.0}
+                {
+                    "kind": "government_fee",
+                    "description": "Frais",
+                    "quantity": 1,
+                    "unit_price": 200.0,
+                }
             ],
         },
     )
@@ -413,3 +427,111 @@ async def test_candidat_forbidden(client):
 
     resp = await client.get("/billing/dashboard", headers=cand["headers"])
     assert resp.status_code == 403
+
+    resp = await client.post("/billing/reminders/send", headers=cand["headers"])
+    assert resp.status_code == 403
+
+
+# --- Reminder sending ---
+
+
+async def _make_overdue_invoice(client, admin) -> int:
+    """Create a sent invoice whose due date is in the past."""
+    cid = await make_candidate()
+    past = (datetime.now(timezone.utc) - timedelta(days=5)).replace(tzinfo=None)
+    created = await client.post(
+        "/billing/invoices",
+        headers=admin["headers"],
+        json={
+            "candidate_id": cid,
+            "due_date": past.isoformat(),
+            "line_items": [
+                {"kind": "service_fee", "description": "A", "quantity": 1, "unit_price": 100.0}
+            ],
+        },
+    )
+    inv_id = created.json()["id"]
+    await client.post(f"/billing/invoices/{inv_id}/send", headers=admin["headers"])
+    return inv_id
+
+
+async def test_send_reminders_without_smtp_sends_nothing(client, monkeypatch):
+    monkeypatch.setattr(smtp_sender, "_host", "")
+    admin = await create_admin()
+    await _make_overdue_invoice(client, admin)
+
+    resp = await client.post("/billing/reminders/send", headers=admin["headers"])
+
+    assert resp.status_code == 200
+    assert resp.json()["sent"] == 0
+    assert "SMTP non configure" in resp.json()["detail"]
+
+
+async def test_send_reminders_emails_the_candidate(client, monkeypatch):
+    sent: list[dict] = []
+
+    async def _capture(to: str, subject: str, body: str):
+        sent.append({"to": to, "subject": subject, "body": body})
+        return {"status": "sent"}
+
+    monkeypatch.setattr(smtp_sender, "_host", "smtp.example.test")
+    monkeypatch.setattr(smtp_sender, "_from", "no-reply@example.test")
+    monkeypatch.setattr(smtp_sender, "send", _capture)
+
+    admin = await create_admin()
+    await _make_overdue_invoice(client, admin)
+
+    resp = await client.post("/billing/reminders/send", headers=admin["headers"])
+
+    assert resp.status_code == 200
+    assert resp.json()["sent"] == 1
+    assert len(sent) == 1
+    assert sent[0]["to"] == "jc@bill.com"
+    # An overdue invoice gets the harsher subject line.
+    assert "en retard" in sent[0]["subject"]
+    # 100.00 of service fee plus tax; the body quotes the outstanding balance.
+    assert "114.97 CAD" in sent[0]["body"]
+
+
+async def test_send_reminders_counts_failures_without_raising(client, monkeypatch):
+    async def _fail(to: str, subject: str, body: str):
+        return {"status": "failed", "error": "ConnectionRefusedError"}
+
+    monkeypatch.setattr(smtp_sender, "_host", "smtp.example.test")
+    monkeypatch.setattr(smtp_sender, "_from", "no-reply@example.test")
+    monkeypatch.setattr(smtp_sender, "send", _fail)
+
+    admin = await create_admin()
+    await _make_overdue_invoice(client, admin)
+
+    resp = await client.post("/billing/reminders/send", headers=admin["headers"])
+
+    assert resp.status_code == 200
+    assert resp.json() == {"detail": "Rappels traites", "sent": 0, "failed": 1, "skipped": 0}
+
+
+async def test_send_reminders_skips_fully_paid_invoices(client, monkeypatch):
+    sent: list[str] = []
+
+    async def _capture(to: str, subject: str, body: str):
+        sent.append(to)
+        return {"status": "sent"}
+
+    monkeypatch.setattr(smtp_sender, "_host", "smtp.example.test")
+    monkeypatch.setattr(smtp_sender, "_from", "no-reply@example.test")
+    monkeypatch.setattr(smtp_sender, "send", _capture)
+
+    admin = await create_admin()
+    inv_id = await _make_overdue_invoice(client, admin)
+    # Settle the full taxed total, not just the 100.00 of line items, so the
+    # balance really reaches zero.
+    await client.post(
+        f"/billing/invoices/{inv_id}/payments",
+        headers=admin["headers"],
+        json={"amount": 114.97, "method": "manual"},
+    )
+
+    resp = await client.post("/billing/reminders/send", headers=admin["headers"])
+
+    assert resp.json()["sent"] == 0
+    assert sent == []

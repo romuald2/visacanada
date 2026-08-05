@@ -3,7 +3,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, JSON, String, Text, func
+from sqlalchemy import JSON, Boolean, DateTime, Enum, ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.user import Base
@@ -30,9 +30,7 @@ class WhatsAppNotification(Base):
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)
     to_number: Mapped[str] = mapped_column(String(50), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
-    status: Mapped[NotificationStatus] = mapped_column(
-        Enum(NotificationStatus), nullable=False
-    )
+    status: Mapped[NotificationStatus] = mapped_column(Enum(NotificationStatus), nullable=False)
     channel: Mapped[str | None] = mapped_column(String(50), nullable=True)
     twilio_sid: Mapped[str | None] = mapped_column(String(100), nullable=True)
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -45,7 +43,9 @@ class WhatsAppNotification(Base):
     user = relationship("User", backref="whatsapp_notifications")
 
     def __repr__(self) -> str:
-        return f"<WhatsAppNotification(id={self.id}, event={self.event_type}, status={self.status})>"
+        return (
+            f"<WhatsAppNotification(id={self.id}, event={self.event_type}, status={self.status})>"
+        )
 
 
 class NotificationPreference(Base):

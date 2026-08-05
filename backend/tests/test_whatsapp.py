@@ -1,8 +1,7 @@
 """Tests for WhatsApp notification system."""
 
-import pytest
-from unittest.mock import AsyncMock, patch
 
+import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
@@ -12,13 +11,11 @@ from app.main import app
 from app.models.user import Base, User, UserRole
 from app.models.whatsapp_notification import (
     NotificationPreference,
-    WhatsAppNotification,
 )
 from app.services.whatsapp_service import (
     DEFAULT_PREFERENCES,
     NotificationEvent,
     WhatsAppService,
-    whatsapp_service,
 )
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"

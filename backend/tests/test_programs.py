@@ -7,9 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from app.core.database import get_db
 from app.core.security import create_access_token, hash_password
 from app.main import app
+from app.models.program import Program
 from app.models.user import Base, User, UserRole
-from app.models.program import Program, ImmigrationProgram
-from app.models.program_requirement import ProgramRequirement, RequirementPriority
 from app.seeds.seed_programs import seed_programs
 from app.seeds.seed_requirements import seed_requirements
 

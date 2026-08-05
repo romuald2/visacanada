@@ -76,7 +76,7 @@ async def register(
     user_data: UserCreate, request: Request, db: AsyncSession = Depends(get_db)
 ):
     """Register a new user."""
-    auth_limiter.check(f"register:{client_ip(request)}")
+    await auth_limiter.check(f"register:{client_ip(request)}")
 
     # Check if email already exists
     result = await db.execute(select(User).where(User.email == user_data.email))
@@ -107,8 +107,8 @@ async def login(
     """Authenticate and return tokens."""
     # Throttle by IP and by targeted account to slow credential stuffing.
     ip = client_ip(request)
-    auth_limiter.check(f"login-ip:{ip}")
-    auth_limiter.check(f"login-user:{credentials.email.lower()}")
+    await auth_limiter.check(f"login-ip:{ip}")
+    await auth_limiter.check(f"login-user:{credentials.email.lower()}")
 
     result = await db.execute(select(User).where(User.email == credentials.email))
     user = result.scalar_one_or_none()
@@ -126,8 +126,8 @@ async def login(
         )
 
     # Successful auth clears the counters for this IP/account.
-    auth_limiter.reset(f"login-ip:{ip}")
-    auth_limiter.reset(f"login-user:{credentials.email.lower()}")
+    await auth_limiter.reset(f"login-ip:{ip}")
+    await auth_limiter.reset(f"login-user:{credentials.email.lower()}")
 
     token_data = {"sub": str(user.id), "email": user.email, "role": user.role.value}
 
@@ -148,7 +148,7 @@ async def refresh_token(
     body: RefreshTokenRequest, request: Request, db: AsyncSession = Depends(get_db)
 ):
     """Refresh access token using refresh token."""
-    auth_limiter.check(f"refresh:{client_ip(request)}")
+    await auth_limiter.check(f"refresh:{client_ip(request)}")
 
     payload = verify_token(body.refresh_token, token_type="refresh")
     if payload is None:

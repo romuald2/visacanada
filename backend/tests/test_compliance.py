@@ -1,23 +1,23 @@
 """Tests for compliance verification system."""
 
 import json
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import patch
 
+import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.database import get_db
 from app.core.security import create_access_token, hash_password
 from app.main import app
-from app.models.user import Base, User, UserRole
 from app.models.candidate import Candidate
+from app.models.document import Document, DocumentStatus
 from app.models.dossier import Dossier, DossierStatus
-from app.models.document import Document, DocumentStatus, DocumentType
-from app.models.program import Program, ImmigrationProgram
+from app.models.program import ImmigrationProgram, Program
 from app.models.program_requirement import ProgramRequirement, RequirementPriority
+from app.models.user import Base, User, UserRole
 from app.services.compliance_agent import ComplianceAgent, compliance_agent
-from app.services.scoring_engine import ScoringEngine, scoring_engine
+from app.services.scoring_engine import scoring_engine
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 engine = create_async_engine(TEST_DATABASE_URL, echo=False)
@@ -66,9 +66,7 @@ async def setup_dossier_with_requirements() -> tuple[int, int, dict]:
         await session.commit()
         await session.refresh(admin)
 
-        candidate = Candidate(
-            first_name="Jean", last_name="Dupont", email="jean@test.com"
-        )
+        candidate = Candidate(first_name="Jean", last_name="Dupont", email="jean@test.com")
         program = Program(
             code=ImmigrationProgram.express_entry_fsw,
             name="Federal Skilled Worker",
@@ -127,9 +125,7 @@ async def setup_dossier_with_requirements() -> tuple[int, int, dict]:
         session.add_all(reqs)
         await session.commit()
 
-        token = create_access_token(
-            {"sub": str(admin.id), "email": admin.email, "role": "admin"}
-        )
+        token = create_access_token({"sub": str(admin.id), "email": admin.email, "role": "admin"})
         headers = {"Authorization": f"Bearer {token}"}
 
         return dossier.id, program.id, headers
@@ -246,7 +242,11 @@ class TestComplianceAgent:
         agent = ComplianceAgent()
         requirements = [
             {"document_type": "passport", "document_name": "Passeport", "priority": "mandatory"},
-            {"document_type": "language_test", "document_name": "Test de langue", "priority": "mandatory"},
+            {
+                "document_type": "language_test",
+                "document_name": "Test de langue",
+                "priority": "mandatory",
+            },
         ]
         documents = [
             {"document_type": "passport", "file_name": "passport.pdf"},
@@ -261,8 +261,16 @@ class TestComplianceAgent:
         agent = ComplianceAgent()
         requirements = [
             {"document_type": "passport", "document_name": "Passeport", "priority": "mandatory"},
-            {"document_type": "language_test", "document_name": "Test de langue", "priority": "mandatory"},
-            {"document_type": "education_credential", "document_name": "ECA", "priority": "mandatory"},
+            {
+                "document_type": "language_test",
+                "document_name": "Test de langue",
+                "priority": "mandatory",
+            },
+            {
+                "document_type": "education_credential",
+                "document_name": "ECA",
+                "priority": "mandatory",
+            },
         ]
         documents = [
             {"document_type": "passport", "file_name": "passport.pdf"},
@@ -378,12 +386,14 @@ class TestComplianceAgent:
     def test_parse_compliance_response_valid_json(self):
         """Parser should handle valid JSON response."""
         agent = ComplianceAgent()
-        response = json.dumps({
-            "global_score": 85.0,
-            "completeness": {"score": 90},
-            "validity": {"score": 80},
-            "consistency": {"score": 85},
-        })
+        response = json.dumps(
+            {
+                "global_score": 85.0,
+                "completeness": {"score": 90},
+                "validity": {"score": 80},
+                "consistency": {"score": 85},
+            }
+        )
         result = agent._parse_compliance_response(response)
         assert result["global_score"] == 85.0
 
@@ -599,11 +609,13 @@ class TestComplianceAPI:
 
             # Link candidate to user
             from sqlalchemy import update
+
             from app.models.candidate import Candidate
+
             await session.execute(
-                update(Candidate).where(Candidate.email == "jean@test.com").values(
-                    user_id=candidat_user.id
-                )
+                update(Candidate)
+                .where(Candidate.email == "jean@test.com")
+                .values(user_id=candidat_user.id)
             )
             await session.commit()
 

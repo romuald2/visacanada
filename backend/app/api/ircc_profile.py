@@ -49,9 +49,7 @@ async def generate_ircc_profile(
     Maps OCR-extracted data to IRCC form fields for the relevant program.
     """
     # Get dossier
-    result = await db.execute(
-        select(Dossier).where(Dossier.id == dossier_id)
-    )
+    result = await db.execute(select(Dossier).where(Dossier.id == dossier_id))
     dossier = result.scalar_one_or_none()
     if not dossier:
         raise HTTPException(
@@ -60,15 +58,11 @@ async def generate_ircc_profile(
         )
 
     # Get program
-    result = await db.execute(
-        select(Program).where(Program.id == dossier.program_id)
-    )
+    result = await db.execute(select(Program).where(Program.id == dossier.program_id))
     program = result.scalar_one()
 
     # Get candidate
-    result = await db.execute(
-        select(Candidate).where(Candidate.id == dossier.candidate_id)
-    )
+    result = await db.execute(select(Candidate).where(Candidate.id == dossier.candidate_id))
     candidate = result.scalar_one()
 
     # Build candidate data dict
@@ -83,9 +77,7 @@ async def generate_ircc_profile(
     }
 
     # Get extracted data from documents
-    result = await db.execute(
-        select(Document).where(Document.dossier_id == dossier_id)
-    )
+    result = await db.execute(select(Document).where(Document.dossier_id == dossier_id))
     documents = result.scalars().all()
 
     extracted_documents = []
@@ -102,7 +94,9 @@ async def generate_ircc_profile(
                 pass
 
     # Determine program category
-    program_category = _get_program_category(program.code.value if hasattr(program.code, "value") else program.code)
+    program_category = _get_program_category(
+        program.code.value if hasattr(program.code, "value") else program.code
+    )
 
     # Generate profile
     profile = ircc_profile_service.generate_profile(
@@ -125,9 +119,7 @@ async def export_ircc_profile(
 ):
     """Export pre-filled profile as clean JSON for external use."""
     # Get dossier
-    result = await db.execute(
-        select(Dossier).where(Dossier.id == dossier_id)
-    )
+    result = await db.execute(select(Dossier).where(Dossier.id == dossier_id))
     dossier = result.scalar_one_or_none()
     if not dossier:
         raise HTTPException(
@@ -136,15 +128,11 @@ async def export_ircc_profile(
         )
 
     # Get program
-    result = await db.execute(
-        select(Program).where(Program.id == dossier.program_id)
-    )
+    result = await db.execute(select(Program).where(Program.id == dossier.program_id))
     program = result.scalar_one()
 
     # Get candidate
-    result = await db.execute(
-        select(Candidate).where(Candidate.id == dossier.candidate_id)
-    )
+    result = await db.execute(select(Candidate).where(Candidate.id == dossier.candidate_id))
     candidate = result.scalar_one()
 
     candidate_data = {
@@ -158,9 +146,7 @@ async def export_ircc_profile(
     }
 
     # Get extracted docs
-    result = await db.execute(
-        select(Document).where(Document.dossier_id == dossier_id)
-    )
+    result = await db.execute(select(Document).where(Document.dossier_id == dossier_id))
     documents = result.scalars().all()
 
     extracted_documents = []
@@ -176,7 +162,9 @@ async def export_ircc_profile(
             except (json.JSONDecodeError, TypeError):
                 pass
 
-    program_category = _get_program_category(program.code.value if hasattr(program.code, "value") else program.code)
+    program_category = _get_program_category(
+        program.code.value if hasattr(program.code, "value") else program.code
+    )
 
     profile = ircc_profile_service.generate_profile(
         program_category=program_category,
@@ -198,9 +186,7 @@ async def get_submission_guide(
 ):
     """Get step-by-step IRCC submission guide for the dossier's program."""
     # Get dossier
-    result = await db.execute(
-        select(Dossier).where(Dossier.id == dossier_id)
-    )
+    result = await db.execute(select(Dossier).where(Dossier.id == dossier_id))
     dossier = result.scalar_one_or_none()
     if not dossier:
         raise HTTPException(
@@ -209,12 +195,12 @@ async def get_submission_guide(
         )
 
     # Get program
-    result = await db.execute(
-        select(Program).where(Program.id == dossier.program_id)
-    )
+    result = await db.execute(select(Program).where(Program.id == dossier.program_id))
     program = result.scalar_one()
 
-    program_category = _get_program_category(program.code.value if hasattr(program.code, "value") else program.code)
+    program_category = _get_program_category(
+        program.code.value if hasattr(program.code, "value") else program.code
+    )
     steps = ircc_profile_service.get_submission_guide(program_category)
 
     return SubmissionGuideResponse(

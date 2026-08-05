@@ -6,14 +6,13 @@ Manages consent, token refresh, and email sync.
 """
 
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any
 from urllib.parse import urlencode
 
 import httpx
 
 from app.core.config import settings
-
 
 # IRCC sender domains
 IRCC_DOMAINS = ["@cic.gc.ca", "@canada.ca", "@ircc-cisr.gc.ca"]

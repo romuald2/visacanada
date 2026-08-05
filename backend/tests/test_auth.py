@@ -162,7 +162,10 @@ async def test_get_me_authenticated(client: AsyncClient, auth_token):
 @pytest.mark.asyncio
 async def test_get_me_no_token(client: AsyncClient):
     response = await client.get("/auth/me")
-    assert response.status_code == 403
+    # HTTPBearer answers 401 when the Authorization header is absent, which is
+    # what RFC 9110 prescribes for missing credentials (403 is for credentials
+    # that are present but insufficient).
+    assert response.status_code == 401
 
 
 @pytest.mark.asyncio

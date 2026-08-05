@@ -6,8 +6,6 @@ Extracts structured data from immigration documents:
 - Employment letters (prebuilt-document / custom)
 """
 
-import json
-from datetime import date
 from enum import Enum
 from typing import Any
 
@@ -25,6 +23,7 @@ class DocumentExtractionType(str, Enum):
 
 class OCRExtractionError(Exception):
     """Custom exception for OCR extraction failures."""
+
     pass
 
 
@@ -85,9 +84,7 @@ class AzureDocumentIntelligenceService:
         else:
             return self._parse_generic_result(result)
 
-    async def _analyze_document(
-        self, file_content: bytes, mime_type: str, model_id: str
-    ) -> dict:
+    async def _analyze_document(self, file_content: bytes, mime_type: str, model_id: str) -> dict:
         """Send document to Azure DI for analysis."""
         url = (
             f"{self._endpoint}/documentintelligence/documentModels/{model_id}:analyze"
@@ -179,7 +176,11 @@ class AzureDocumentIntelligenceService:
         for azure_field, our_field in field_mapping.items():
             if azure_field in fields:
                 field_data = fields[azure_field]
-                value = field_data.get("valueString") or field_data.get("valueDate") or field_data.get("content", "")
+                value = (
+                    field_data.get("valueString")
+                    or field_data.get("valueDate")
+                    or field_data.get("content", "")
+                )
                 confidence = field_data.get("confidence", 0.0)
                 extracted["fields"][our_field] = {
                     "value": str(value) if value else None,

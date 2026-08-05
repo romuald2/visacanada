@@ -4,11 +4,6 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-
-
-def _utcnow() -> datetime:
-    """Naive UTC timestamp (matches the rest of the codebase)."""
-    return datetime.now(timezone.utc).replace(tzinfo=None)
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,6 +15,11 @@ from app.models.user import User, UserRole
 from app.services.email_service import gmail_service, outlook_service
 
 router = APIRouter(prefix="/email", tags=["email"])
+
+
+def _utcnow() -> datetime:
+    """Naive UTC timestamp (matches the rest of the codebase)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 @router.get("/connect/gmail")
@@ -166,7 +166,7 @@ async def list_email_connections(
     result = await db.execute(
         select(EmailConnection).where(
             EmailConnection.candidate_id == candidate_id,
-            EmailConnection.is_active == True,
+            EmailConnection.is_active == True,  # noqa: E712
         )
     )
     connections = result.scalars().all()
@@ -194,7 +194,7 @@ async def sync_candidate_emails(
     result = await db.execute(
         select(EmailConnection).where(
             EmailConnection.candidate_id == candidate_id,
-            EmailConnection.is_active == True,
+            EmailConnection.is_active == True,  # noqa: E712
         )
     )
     connections = result.scalars().all()

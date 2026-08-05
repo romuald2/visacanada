@@ -1,9 +1,9 @@
 """Tests for OCR extraction system."""
 
 import json
-import pytest
-from unittest.mock import AsyncMock, patch, PropertyMock
+from unittest.mock import AsyncMock, patch
 
+import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -11,15 +11,13 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from app.core.database import get_db
 from app.core.security import create_access_token, hash_password
 from app.main import app
-from app.models.user import Base, User, UserRole
 from app.models.candidate import Candidate
-from app.models.dossier import Dossier, DossierStatus
 from app.models.document import Document, DocumentStatus, DocumentType
-from app.models.program import Program, ImmigrationProgram
+from app.models.dossier import Dossier, DossierStatus
+from app.models.program import ImmigrationProgram, Program
+from app.models.user import Base, User, UserRole
 from app.services.ocr_service import (
     AzureDocumentIntelligenceService,
-    DocumentExtractionType,
-    azure_ocr_service,
 )
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -69,9 +67,7 @@ async def setup_document() -> tuple[int, dict]:
         await session.commit()
         await session.refresh(admin)
 
-        candidate = Candidate(
-            first_name="OCR", last_name="Test", email="ocr@test.com"
-        )
+        candidate = Candidate(first_name="OCR", last_name="Test", email="ocr@test.com")
         program = Program(
             code=ImmigrationProgram.express_entry_fsw,
             name="FSW",
@@ -104,9 +100,7 @@ async def setup_document() -> tuple[int, dict]:
         await session.commit()
         await session.refresh(doc)
 
-        token = create_access_token(
-            {"sub": str(admin.id), "email": admin.email, "role": "admin"}
-        )
+        token = create_access_token({"sub": str(admin.id), "email": admin.email, "role": "admin"})
         return doc.id, {"Authorization": f"Bearer {token}"}
 
 
@@ -130,27 +124,47 @@ MOCK_PASSPORT_RESPONSE = {
 
 MOCK_BANK_STATEMENT_RESPONSE = {
     "keyValuePairs": [
-        {"key": {"content": "Solde final"}, "value": {"content": "15,432.50 CAD"}, "confidence": 0.9},
-        {"key": {"content": "Numéro de compte"}, "value": {"content": "12345-678"}, "confidence": 0.95},
+        {
+            "key": {"content": "Solde final"},
+            "value": {"content": "15,432.50 CAD"},
+            "confidence": 0.9,
+        },
+        {
+            "key": {"content": "Numéro de compte"},
+            "value": {"content": "12345-678"},
+            "confidence": 0.95,
+        },
         {"key": {"content": "Titulaire"}, "value": {"content": "Jean Dupont"}, "confidence": 0.92},
-        {"key": {"content": "Période"}, "value": {"content": "01/01/2026 - 31/03/2026"}, "confidence": 0.88},
+        {
+            "key": {"content": "Période"},
+            "value": {"content": "01/01/2026 - 31/03/2026"},
+            "confidence": 0.88,
+        },
     ],
-    "pages": [
-        {"lines": [{"content": "Relevé bancaire - Banque Nationale"}]}
-    ],
+    "pages": [{"lines": [{"content": "Relevé bancaire - Banque Nationale"}]}],
 }
 
 MOCK_EMPLOYMENT_LETTER_RESPONSE = {
     "keyValuePairs": [
-        {"key": {"content": "Poste"}, "value": {"content": "Développeur Senior"}, "confidence": 0.93},
-        {"key": {"content": "Salaire annuel"}, "value": {"content": "95,000 CAD"}, "confidence": 0.91},
-        {"key": {"content": "Date d'embauche"}, "value": {"content": "2022-03-01"}, "confidence": 0.89},
+        {
+            "key": {"content": "Poste"},
+            "value": {"content": "Développeur Senior"},
+            "confidence": 0.93,
+        },
+        {
+            "key": {"content": "Salaire annuel"},
+            "value": {"content": "95,000 CAD"},
+            "confidence": 0.91,
+        },
+        {
+            "key": {"content": "Date d'embauche"},
+            "value": {"content": "2022-03-01"},
+            "confidence": 0.89,
+        },
         {"key": {"content": "Employeur"}, "value": {"content": "TechCo Inc."}, "confidence": 0.95},
         {"key": {"content": "Heures/semaine"}, "value": {"content": "40"}, "confidence": 0.97},
     ],
-    "pages": [
-        {"lines": [{"content": "Lettre d'emploi - TechCo Inc."}]}
-    ],
+    "pages": [{"lines": [{"content": "Lettre d'emploi - TechCo Inc."}]}],
 }
 
 
@@ -221,11 +235,13 @@ class TestExtractionAPI:
     async def test_extract_passport(self, mock_azure, mock_fetch, client: AsyncClient):
         mock_fetch.return_value = b"fake pdf content"
         mock_azure.is_configured = True
-        mock_azure.extract_document = AsyncMock(return_value={
-            "type": "passport",
-            "fields": {"first_name": {"value": "Jean", "confidence": 0.98}},
-            "confidence": 0.95,
-        })
+        mock_azure.extract_document = AsyncMock(
+            return_value={
+                "type": "passport",
+                "fields": {"first_name": {"value": "Jean", "confidence": 0.98}},
+                "confidence": 0.95,
+            }
+        )
 
         doc_id, headers = await setup_document()
 
@@ -249,13 +265,15 @@ class TestExtractionAPI:
         mock_fetch.return_value = b"fake image content"
         mock_azure.is_configured = False
         mock_tess.is_available = True
-        mock_tess.extract_text = AsyncMock(return_value={
-            "type": "tesseract_fallback",
-            "fields": {},
-            "raw_text": "PASSPORT\nJean Dupont\nFR1234567",
-            "confidence": 0.6,
-            "method": "tesseract",
-        })
+        mock_tess.extract_text = AsyncMock(
+            return_value={
+                "type": "tesseract_fallback",
+                "fields": {},
+                "raw_text": "PASSPORT\nJean Dupont\nFR1234567",
+                "confidence": 0.6,
+                "method": "tesseract",
+            }
+        )
 
         doc_id, headers = await setup_document()
 
@@ -271,9 +289,7 @@ class TestExtractionAPI:
 
     @patch("app.api.extraction.azure_ocr_service")
     @patch("app.api.extraction.tesseract_service")
-    async def test_extract_no_service_available(
-        self, mock_tess, mock_azure, client: AsyncClient
-    ):
+    async def test_extract_no_service_available(self, mock_tess, mock_azure, client: AsyncClient):
         mock_azure.is_configured = False
         mock_tess.is_available = False
 
@@ -316,19 +332,17 @@ class TestExtractionAPI:
 
         # Set extracted data on document
         async with TestSessionLocal() as session:
-            result = await session.execute(
-                select(Document).where(Document.id == doc_id)
-            )
+            result = await session.execute(select(Document).where(Document.id == doc_id))
             doc = result.scalar_one()
-            doc.extracted_data = json.dumps({
-                "type": "passport",
-                "fields": {"first_name": {"value": "Jean"}},
-            })
+            doc.extracted_data = json.dumps(
+                {
+                    "type": "passport",
+                    "fields": {"first_name": {"value": "Jean"}},
+                }
+            )
             await session.commit()
 
-        response = await client.get(
-            f"/extraction/{doc_id}/extracted-data", headers=headers
-        )
+        response = await client.get(f"/extraction/{doc_id}/extracted-data", headers=headers)
 
         assert response.status_code == 200
         data = response.json()
@@ -338,9 +352,7 @@ class TestExtractionAPI:
     async def test_get_extracted_data_empty(self, client: AsyncClient):
         doc_id, headers = await setup_document()
 
-        response = await client.get(
-            f"/extraction/{doc_id}/extracted-data", headers=headers
-        )
+        response = await client.get(f"/extraction/{doc_id}/extracted-data", headers=headers)
 
         assert response.status_code == 200
         data = response.json()
@@ -368,6 +380,99 @@ class TestExtractionAPI:
         data = response.json()
         assert data["extracted_data"]["fields"]["first_name"]["value"] == "Jean-Pierre"
         assert "_manual_correction" in data["extracted_data"]
+
+    @patch("app.api.extraction._fetch_file_from_s3")
+    @patch("app.api.extraction.azure_ocr_service")
+    async def test_extract_populates_expiry(self, mock_azure, mock_fetch, client: AsyncClient):
+        mock_fetch.return_value = b"fake pdf content"
+        mock_azure.is_configured = True
+        mock_azure.extract_document = AsyncMock(
+            return_value={
+                "type": "passport",
+                "fields": {"expiry_date": {"value": "2029-08-15", "confidence": 0.96}},
+                "confidence": 0.95,
+            }
+        )
+
+        doc_id, headers = await setup_document()
+        resp = await client.post(
+            f"/extraction/{doc_id}/extract",
+            json={"extraction_type": "passport"},
+            headers=headers,
+        )
+        assert resp.status_code == 200
+
+        async with TestSessionLocal() as session:
+            doc = (
+                await session.execute(select(Document).where(Document.id == doc_id))
+            ).scalar_one()
+            assert doc.expires_at is not None
+            assert doc.expires_at.year == 2029
+            assert doc.expires_at.month == 8
+
+    async def test_manual_correction_updates_expiry(self, client: AsyncClient):
+        # Use a language_test doc so expiry is derived from issue date.
+        async with TestSessionLocal() as session:
+            admin = User(
+                email="admin3@ocr.com",
+                hashed_password=hash_password("pass"),
+                full_name="Admin",
+                role=UserRole.admin,
+            )
+            candidate = Candidate(first_name="L", last_name="T", email="lt@ocr.com")
+            program = Program(
+                code=ImmigrationProgram.express_entry_fsw,
+                name="FSW",
+                category="Express Entry",
+                is_active=True,
+            )
+            session.add_all([admin, candidate, program])
+            await session.commit()
+            await session.refresh(admin)
+            await session.refresh(candidate)
+            await session.refresh(program)
+            dossier = Dossier(
+                candidate_id=candidate.id,
+                program_id=program.id,
+                status=DossierStatus.en_cours,
+            )
+            session.add(dossier)
+            await session.commit()
+            await session.refresh(dossier)
+            doc = Document(
+                dossier_id=dossier.id,
+                document_type=DocumentType.language_test,
+                status=DocumentStatus.uploaded,
+                file_name="ielts.pdf",
+            )
+            session.add(doc)
+            await session.commit()
+            await session.refresh(doc)
+            doc_id = doc.id
+            token = create_access_token(
+                {"sub": str(admin.id), "email": admin.email, "role": "admin"}
+            )
+            headers = {"Authorization": f"Bearer {token}"}
+
+        resp = await client.put(
+            f"/extraction/{doc_id}/extracted-data",
+            json={
+                "extracted_data": {
+                    "type": "language_test",
+                    "fields": {"issue_date": {"value": "2025-06-01", "confidence": 1.0}},
+                }
+            },
+            headers=headers,
+        )
+        assert resp.status_code == 200
+
+        async with TestSessionLocal() as session:
+            doc = (
+                await session.execute(select(Document).where(Document.id == doc_id))
+            ).scalar_one()
+            # 2025-06-01 + 730 days = 2027-05-31/06-01 window
+            assert doc.expires_at is not None
+            assert doc.expires_at.year == 2027
 
     async def test_update_extracted_data_forbidden_for_candidat(self, client: AsyncClient):
         doc_id, _ = await setup_document()

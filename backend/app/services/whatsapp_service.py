@@ -6,17 +6,17 @@ Fallback to SMS if WhatsApp delivery fails.
 """
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Any
+
+import httpx
+
+from app.core.config import settings
 
 
 def _utcnow() -> datetime:
     """Naive UTC timestamp (matches the rest of the codebase)."""
     return datetime.now(timezone.utc).replace(tzinfo=None)
-
-import httpx
-
-from app.core.config import settings
 
 
 # Notification event types

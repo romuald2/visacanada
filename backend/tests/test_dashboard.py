@@ -1,20 +1,20 @@
 """Tests for admin dashboard API."""
 
-import pytest
 from datetime import datetime, timedelta, timezone
 
+import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.database import get_db
 from app.core.security import create_access_token, hash_password
 from app.main import app
-from app.models.user import Base, User, UserRole
 from app.models.candidate import Candidate
-from app.models.dossier import Dossier, DossierStatus
 from app.models.document import Document, DocumentStatus, DocumentType
-from app.models.program import Program, ImmigrationProgram
-from app.models.whatsapp_notification import WhatsAppNotification, NotificationStatus
+from app.models.dossier import Dossier, DossierStatus
+from app.models.program import ImmigrationProgram, Program
+from app.models.user import Base, User, UserRole
+from app.models.whatsapp_notification import NotificationStatus, WhatsAppNotification
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 engine = create_async_engine(TEST_DATABASE_URL, echo=False)

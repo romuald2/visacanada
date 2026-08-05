@@ -28,8 +28,14 @@ ENV/
 # Node
 node_modules/
 .next/
+next-env.d.ts
+
+# Frontend source under src/lib/ is real code, not a Python build artifact
+!frontend/src/lib/
+!frontend/src/lib/**
 out/
 .turbo/
+*.tsbuildinfo
 
 # IDE
 .vscode/
@@ -58,9 +64,15 @@ htmlcov/
 test.db
 *.sqlite
 *.sqlite3
+playwright-report/
+test-results/
+playwright/.cache/
 
 # Alembic
 alembic/versions/*.pyc
+
+# Claude Code (réglages partagés versionnés, réglages locaux ignorés)
+.claude/settings.local.json
 
 # Misc
 *.log

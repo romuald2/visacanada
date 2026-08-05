@@ -18,7 +18,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.candidate import Candidate
 from app.models.privacy import ConsentRecord
 
-
 # Current privacy-policy / terms version. Bump when the policy text changes so
 # prior consents can be re-collected.
 PRIVACY_POLICY_VERSION = "1.0.0"
@@ -27,8 +26,6 @@ PRIVACY_POLICY_VERSION = "1.0.0"
 class PrivacyService:
     async def export_user_data(self, user, db: AsyncSession) -> dict[str, Any]:
         """Assemble a portable export of all personal data held about a user."""
-        _Consent = ConsentRecord
-
         export: dict[str, Any] = {
             "exported_at": datetime.now(timezone.utc).isoformat(),
             "policy_version": PRIVACY_POLICY_VERSION,
@@ -61,7 +58,7 @@ class PrivacyService:
 
         # Consent history.
         consent_res = await db.execute(
-            select(_Consent).where(_Consent.user_id == user.id)
+            select(ConsentRecord).where(ConsentRecord.user_id == user.id)
         )
         consents = consent_res.scalars().all()
         export["consents"] = [
@@ -86,8 +83,6 @@ class PrivacyService:
         immigration files keep referential integrity; consent records are
         removed. Audit logs are intentionally retained for legal accountability.
         """
-        _Consent = ConsentRecord
-
         cand_res = await db.execute(
             select(Candidate).where(Candidate.user_id == user.id)
         )
@@ -104,7 +99,7 @@ class PrivacyService:
             c.user_id = None
             anonymized += 1
 
-        await db.execute(delete(_Consent).where(_Consent.user_id == user.id))
+        await db.execute(delete(ConsentRecord).where(ConsentRecord.user_id == user.id))
         await db.commit()
 
         return {

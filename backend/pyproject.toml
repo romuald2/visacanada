@@ -17,8 +17,22 @@ dependencies = [
     "python-multipart>=0.0.12",
     "python-jose[cryptography]>=3.3.0",
     "passlib[bcrypt]>=1.7.4",
+    # passlib 1.7.4 (its last release) reads bcrypt.__about__.__version__, which
+    # bcrypt 5 removed. passlib then falls back to a backend that rejects every
+    # hash with "password cannot be longer than 72 bytes". Cap until passlib ships
+    # a release that supports bcrypt 5, or the hashing backend is swapped out.
+    "bcrypt<5",
     "email-validator>=2.1.0",
+    # Imported directly by app/services/smtp_sender.py (to_thread). It also
+    # arrives transitively via FastAPI, but a direct import gets a direct
+    # declaration.
+    "anyio>=4.0.0",
+    "aioboto3>=13.0.0",
+    "reportlab>=4.2.0",
 ]
+# Not listed on purpose: pdf2image is an optional OCR fallback (it also needs the
+# poppler binaries) and app/services/tesseract_service.py handles its absence
+# explicitly with a user-facing message.
 
 [project.optional-dependencies]
 dev = [
@@ -29,12 +43,30 @@ dev = [
     "aiosqlite>=0.20.0",
 ]
 
+# Several importable packages live at the project root (app, scripts, tests), so
+# setuptools' automatic discovery is ambiguous and fails the editable install.
+# Only the application package is distributable; scripts and tests are not.
+[tool.setuptools]
+packages = ["app"]
+
 [tool.ruff]
 target-version = "py312"
 line-length = 100
+# Migration scripts are generated and then frozen: reformatting them adds churn
+# to an append-only history without improving anything that gets maintained.
+extend-exclude = ["alembic/versions"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W"]
+# The formatter still wraps code at line-length (100). This only relaxes the lint
+# ceiling for what it cannot split: single string literals such as user-facing
+# messages and __repr__, which lose readability when broken by hand.
+pycodestyle.max-line-length = 120
+
+[tool.ruff.lint.per-file-ignores]
+# Seed files are IRCC reference data (program descriptions, document lists) held
+# in long string literals. Wrapping them would obscure the content.
+"app/seeds/*" = ["E501"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

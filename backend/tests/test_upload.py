@@ -1,25 +1,24 @@
 """Tests for secure document upload and storage system."""
 
 import io
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
+import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.database import get_db
 from app.core.security import create_access_token, hash_password
 from app.main import app
-from app.models.user import Base, User, UserRole
 from app.models.candidate import Candidate
-from app.models.dossier import Dossier, DossierStatus
 from app.models.document import Document, DocumentStatus, DocumentType
-from app.models.program import Program, ImmigrationProgram
+from app.models.dossier import Dossier, DossierStatus
+from app.models.program import ImmigrationProgram, Program
+from app.models.user import Base, User, UserRole
 from app.services.s3_storage import (
     ALLOWED_MIME_TYPES,
     MAX_FILE_SIZE_BYTES,
     S3StorageService,
-    s3_storage,
 )
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -69,9 +68,7 @@ async def setup_dossier() -> tuple[int, dict]:
         await session.commit()
         await session.refresh(admin)
 
-        candidate = Candidate(
-            first_name="Upload", last_name="Test", email="upload@test.com"
-        )
+        candidate = Candidate(first_name="Upload", last_name="Test", email="upload@test.com")
         program = Program(
             code=ImmigrationProgram.express_entry_fsw,
             name="FSW",
@@ -92,9 +89,7 @@ async def setup_dossier() -> tuple[int, dict]:
         await session.commit()
         await session.refresh(dossier)
 
-        token = create_access_token(
-            {"sub": str(admin.id), "email": admin.email, "role": "admin"}
-        )
+        token = create_access_token({"sub": str(admin.id), "email": admin.email, "role": "admin"})
         return dossier.id, {"Authorization": f"Bearer {token}"}
 
 
@@ -128,7 +123,10 @@ class TestS3StorageService:
         assert "image/jpeg" in ALLOWED_MIME_TYPES
         assert "image/png" in ALLOWED_MIME_TYPES
         assert "application/msword" in ALLOWED_MIME_TYPES
-        assert "application/vnd.openxmlformats-officedocument.wordprocessingml.document" in ALLOWED_MIME_TYPES
+        assert (
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            in ALLOWED_MIME_TYPES
+        )
         # Not allowed
         assert "application/zip" not in ALLOWED_MIME_TYPES
         assert "text/plain" not in ALLOWED_MIME_TYPES
@@ -140,12 +138,14 @@ class TestS3StorageService:
 class TestUploadAPI:
     @patch("app.api.upload.s3_storage")
     async def test_upload_pdf(self, mock_s3, client: AsyncClient):
-        mock_s3.upload_file = AsyncMock(return_value={
-            "s3_key": "documents/1/1/passport/abc_test.pdf",
-            "file_size": 1024,
-            "mime_type": "application/pdf",
-            "bucket": "test-bucket",
-        })
+        mock_s3.upload_file = AsyncMock(
+            return_value={
+                "s3_key": "documents/1/1/passport/abc_test.pdf",
+                "file_size": 1024,
+                "mime_type": "application/pdf",
+                "bucket": "test-bucket",
+            }
+        )
 
         dossier_id, headers = await setup_dossier()
         pdf_content = b"%PDF-1.4 fake pdf content" * 100
@@ -233,9 +233,7 @@ class TestUploadAPI:
             await session.refresh(doc)
             doc_id = doc.id
 
-        response = await client.get(
-            f"/upload/{doc_id}/view", headers=headers
-        )
+        response = await client.get(f"/upload/{doc_id}/view", headers=headers)
 
         assert response.status_code == 200
         data = response.json()
@@ -265,9 +263,7 @@ class TestUploadAPI:
             await session.refresh(doc)
             doc_id = doc.id
 
-        response = await client.get(
-            f"/upload/{doc_id}/download", headers=headers
-        )
+        response = await client.get(f"/upload/{doc_id}/download", headers=headers)
 
         assert response.status_code == 200
         data = response.json()
@@ -293,9 +289,7 @@ class TestUploadAPI:
             await session.refresh(doc)
             doc_id = doc.id
 
-        response = await client.delete(
-            f"/upload/{doc_id}", headers=headers
-        )
+        response = await client.delete(f"/upload/{doc_id}", headers=headers)
 
         assert response.status_code == 200
         data = response.json()

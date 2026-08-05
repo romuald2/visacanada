@@ -3,20 +3,20 @@
 from datetime import datetime, timedelta, timezone
 
 import pytest
-
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.database import get_db
 from app.core.security import create_access_token, hash_password
 from app.main import app
-from app.models.alert import Alert, AlertType
+from app.models.alert import AlertType
 from app.models.candidate import Candidate
 from app.models.document import Document, DocumentStatus, DocumentType
 from app.models.dossier import Dossier, DossierStatus
 from app.models.program import ImmigrationProgram, Program
 from app.models.user import Base, User, UserRole
 from app.services.alert_service import AlertService
+from app.services.smtp_sender import smtp_sender
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 engine = create_async_engine(TEST_DATABASE_URL, echo=False)
@@ -63,6 +63,20 @@ async def create_admin() -> dict:
     async with TestSessionLocal() as session:
         admin = User(
             email="admin@alerts.com",
+            hashed_password=hash_password("pass"),
+            full_name="Admin",
+            role=UserRole.admin,
+        )
+        session.add(admin)
+        await session.commit()
+        await session.refresh(admin)
+        return {"headers": _auth(admin), "user_id": admin.id}
+
+
+async def create_admin_named(email: str) -> dict:
+    async with TestSessionLocal() as session:
+        admin = User(
+            email=email,
             hashed_password=hash_password("pass"),
             full_name="Admin",
             role=UserRole.admin,
@@ -318,3 +332,144 @@ class TestAlertsAPI:
         cand = await create_candidat()
         resp = await client.get("/alerts", headers=cand["headers"])
         assert resp.status_code == 403
+
+    async def test_scan_delivers_notifications(self, client):
+        # An admin exists as fallback recipient.
+        await create_admin()
+        dossier_id = await make_dossier()
+        await add_document(dossier_id, DocumentType.passport, expires_in_days=50)
+
+        admin2 = await create_admin_named("admin2@alerts.com")
+        scan = await client.post("/alerts/scan", headers=admin2["headers"])
+        body = scan.json()
+        assert body["new_alerts"] >= 1
+        # dashboard + email notifications persisted for the alert
+        assert body["dashboard"] >= 1
+        assert body["email"] >= 1
+        assert body["alerts"] >= 1
+
+    async def test_email_channel_sends_when_smtp_configured(self, client, monkeypatch):
+        sent: list[str] = []
+
+        async def _capture(to: str, subject: str, body: str):
+            sent.append(to)
+            return {"status": "sent"}
+
+        monkeypatch.setattr(smtp_sender, "_host", "smtp.example.test")
+        monkeypatch.setattr(smtp_sender, "_from", "no-reply@example.test")
+        monkeypatch.setattr(smtp_sender, "send", _capture)
+
+        await create_admin()
+        dossier_id = await make_dossier()
+        await add_document(dossier_id, DocumentType.passport, expires_in_days=50)
+
+        admin2 = await create_admin_named("admin2@alerts.com")
+        scan = await client.post("/alerts/scan", headers=admin2["headers"])
+        body = scan.json()
+
+        assert body["email"] >= 1
+        assert body["email_sent"] >= 1
+        assert len(sent) >= 1
+
+    async def test_email_channel_without_smtp_stays_dashboard_only(self, client, monkeypatch):
+        # No relay configured: the Notification row is still written, so the
+        # alert remains visible, but nothing leaves the building.
+        monkeypatch.setattr(smtp_sender, "_host", "")
+
+        await create_admin()
+        dossier_id = await make_dossier()
+        await add_document(dossier_id, DocumentType.passport, expires_in_days=50)
+
+        admin2 = await create_admin_named("admin2@alerts.com")
+        scan = await client.post("/alerts/scan", headers=admin2["headers"])
+        body = scan.json()
+
+        assert body["email"] >= 1
+        assert body["email_sent"] == 0
+
+    async def test_smtp_failure_does_not_abort_the_scan(self, client, monkeypatch):
+        async def _fail(to: str, subject: str, body: str):
+            return {"status": "failed", "error": "ConnectionRefusedError"}
+
+        monkeypatch.setattr(smtp_sender, "_host", "smtp.example.test")
+        monkeypatch.setattr(smtp_sender, "_from", "no-reply@example.test")
+        monkeypatch.setattr(smtp_sender, "send", _fail)
+
+        await create_admin()
+        dossier_id = await make_dossier()
+        await add_document(dossier_id, DocumentType.passport, expires_in_days=50)
+
+        admin2 = await create_admin_named("admin2@alerts.com")
+        scan = await client.post("/alerts/scan", headers=admin2["headers"])
+
+        assert scan.status_code == 200
+        body = scan.json()
+        assert body["email"] >= 1
+        assert body["email_sent"] == 0
+
+    async def test_scan_no_deliver_flag(self, client):
+        admin = await create_admin()
+        dossier_id = await make_dossier()
+        await add_document(dossier_id, DocumentType.passport, expires_in_days=50)
+        scan = await client.post(
+            "/alerts/scan?deliver=false", headers=admin["headers"]
+        )
+        body = scan.json()
+        assert body["new_alerts"] >= 1
+        assert "dashboard" not in body
+
+    async def test_upcoming_sorted_and_filtered(self, client):
+        admin = await create_admin()
+        dossier_id = await make_dossier()
+        # expired passport -> critical; medical in 30d -> warning
+        await add_document(dossier_id, DocumentType.passport, expires_in_days=-5)
+        await add_document(dossier_id, DocumentType.medical_exam, expires_in_days=30)
+        await client.post("/alerts/scan", headers=admin["headers"])
+
+        resp = await client.get("/alerts/upcoming", headers=admin["headers"])
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["count"] >= 1
+        # critical first
+        assert data["items"][0]["severity"] == "critical"
+
+    async def test_upcoming_window_excludes_far(self, client):
+        admin = await create_admin()
+        dossier_id = await make_dossier()
+        await add_document(dossier_id, DocumentType.passport, expires_in_days=150)
+        await client.post("/alerts/scan", headers=admin["headers"])
+        # 150 days out is beyond a 30-day window
+        resp = await client.get(
+            "/alerts/upcoming?days=30", headers=admin["headers"]
+        )
+        assert resp.status_code == 200
+        assert resp.json()["count"] == 0
+
+
+class TestAlertDelivery:
+    async def test_critical_forces_channels_even_if_disabled(self, client):
+        admin = await create_admin()
+        dossier_id = await make_dossier()
+        await add_document(dossier_id, DocumentType.passport, expires_in_days=-3)
+        # disable all channels for this dossier
+        await client.put(
+            f"/alerts/config/{dossier_id}",
+            headers=admin["headers"],
+            json={"channels": {"dashboard": False, "email": False, "whatsapp": False}},
+        )
+        scan = await client.post("/alerts/scan", headers=admin["headers"])
+        body = scan.json()
+        # critical alert still delivered on dashboard + email
+        assert body["dashboard"] >= 1
+        assert body["email"] >= 1
+
+    async def test_delivery_idempotent(self, client):
+        admin = await create_admin()
+        dossier_id = await make_dossier()
+        await add_document(dossier_id, DocumentType.passport, expires_in_days=50)
+        first = await client.post("/alerts/scan", headers=admin["headers"])
+        second = await client.post("/alerts/scan", headers=admin["headers"])
+        # second pass creates no new alerts and delivers nothing new
+        assert second.json()["new_alerts"] == 0
+        assert second.json()["alerts"] == 0
+        assert first.json()["alerts"] >= 1

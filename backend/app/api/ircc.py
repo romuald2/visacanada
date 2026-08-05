@@ -1,28 +1,20 @@
 """API router for IRCC updates and monitoring."""
 
-import asyncio
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.auth import get_current_user, require_role
+from app.api.auth import require_role
 from app.core.database import get_db
 from app.models.ircc_update import IRCCUpdate, IRCCUpdateCategory
 from app.models.user import User, UserRole
 from app.services.ircc_monitor import IRCCFeedParser
-from app.tasks.ircc_tasks import _store_new_updates, _notify_admins
+from app.tasks.ircc_tasks import _notify_admins, _store_new_updates
 
 router = APIRouter(prefix="/ircc", tags=["ircc-monitoring"])
-
-
-class IRCCUpdateResponse:
-    """Not using Pydantic here — defined inline for clarity."""
-    pass
-
-
-from datetime import datetime
-from pydantic import BaseModel
 
 
 class IRCCUpdateOut(BaseModel):
@@ -169,7 +161,7 @@ async def get_monitoring_stats(
     total = total_result.scalar()
 
     unread_result = await db.execute(
-        select(func.count(IRCCUpdate.id)).where(IRCCUpdate.is_read == False)
+        select(func.count(IRCCUpdate.id)).where(IRCCUpdate.is_read == False)  # noqa: E712
     )
     unread = unread_result.scalar()
 

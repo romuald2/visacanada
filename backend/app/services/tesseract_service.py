@@ -10,7 +10,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from app.services.ocr_service import DocumentExtractionType, OCRExtractionError
+from app.services.ocr_service import OCRExtractionError
 
 
 class TesseractOCRService:

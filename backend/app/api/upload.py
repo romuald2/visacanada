@@ -1,6 +1,6 @@
 """API router for secure document upload and access."""
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -282,7 +282,6 @@ async def soft_delete_document(
             pass
 
     # Update document record
-    from datetime import datetime, timezone
     document.status = DocumentStatus.rejected  # Mark as inactive
     document.file_path_s3 = archive_key  # Point to archive location
 

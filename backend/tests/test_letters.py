@@ -1,15 +1,14 @@
 """Tests for letter generation."""
 
 import pytest
-
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.database import get_db
 from app.core.security import create_access_token, hash_password
 from app.main import app
-from app.models.user import Base, User, UserRole
 from app.models.candidate import Candidate
+from app.models.user import Base, User, UserRole
 from app.services.letter_generator import (
     LetterGenerator,
     LetterType,

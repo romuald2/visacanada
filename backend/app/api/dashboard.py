@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import case, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.auth import require_role
@@ -28,7 +28,9 @@ async def get_overview(
     result = await db.execute(
         select(Dossier.status, func.count(Dossier.id)).group_by(Dossier.status)
     )
-    status_counts = {row[0].value if hasattr(row[0], "value") else row[0]: row[1] for row in result.all()}
+    status_counts = {
+        row[0].value if hasattr(row[0], "value") else row[0]: row[1] for row in result.all()
+    }
 
     # Total dossiers
     total_result = await db.execute(select(func.count(Dossier.id)))
@@ -40,9 +42,7 @@ async def get_overview(
 
     # Average compliance score (non-null only)
     avg_score_result = await db.execute(
-        select(func.avg(Dossier.compliance_score)).where(
-            Dossier.compliance_score.isnot(None)
-        )
+        select(func.avg(Dossier.compliance_score)).where(Dossier.compliance_score.isnot(None))
     )
     avg_score = avg_score_result.scalar()
 
@@ -105,10 +105,14 @@ async def get_urgent_actions(
             {
                 "document_id": doc.id,
                 "dossier_id": doc.dossier_id,
-                "document_type": doc.document_type.value if hasattr(doc.document_type, "value") else doc.document_type,
+                "document_type": doc.document_type.value
+                if hasattr(doc.document_type, "value")
+                else doc.document_type,
                 "file_name": doc.file_name,
                 "expires_at": doc.expires_at.isoformat() if doc.expires_at else None,
-                "days_remaining": (doc.expires_at.replace(tzinfo=None) - now_naive).days if doc.expires_at else None,
+                "days_remaining": (doc.expires_at.replace(tzinfo=None) - now_naive).days
+                if doc.expires_at
+                else None,
             }
             for doc in expiring_docs
         ],
@@ -116,7 +120,9 @@ async def get_urgent_actions(
             {
                 "document_id": doc.id,
                 "dossier_id": doc.dossier_id,
-                "document_type": doc.document_type.value if hasattr(doc.document_type, "value") else doc.document_type,
+                "document_type": doc.document_type.value
+                if hasattr(doc.document_type, "value")
+                else doc.document_type,
                 "file_name": doc.file_name,
                 "expires_at": doc.expires_at.isoformat() if doc.expires_at else None,
             }
@@ -132,6 +138,8 @@ async def get_urgent_actions(
             for d in missing_docs_dossiers
         ],
     }
+
+
 # PLACEHOLDER_RECENT
 
 
@@ -143,9 +151,7 @@ async def get_recent_notifications(
 ):
     """Get latest notifications (WhatsApp/SMS sent)."""
     result = await db.execute(
-        select(WhatsAppNotification)
-        .order_by(WhatsAppNotification.sent_at.desc())
-        .limit(limit)
+        select(WhatsAppNotification).order_by(WhatsAppNotification.sent_at.desc()).limit(limit)
     )
     notifications = result.scalars().all()
 

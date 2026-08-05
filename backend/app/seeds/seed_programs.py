@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import async_session_factory
-from app.models.program import Program, ImmigrationProgram
+from app.models.program import Program
 from app.seeds import PROGRAMS_SEED
 
 

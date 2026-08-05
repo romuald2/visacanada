@@ -1,15 +1,14 @@
 """Tests for CRS Calculator."""
 
 import pytest
-
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.database import get_db
 from app.core.security import create_access_token, hash_password
 from app.main import app
-from app.models.user import Base, User, UserRole
 from app.models.candidate import Candidate
+from app.models.user import Base, User, UserRole
 from app.services.crs_calculator import (
     CRSCalculator,
     CRSInput,
@@ -50,6 +49,8 @@ async def client():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as c:
         yield c
+
+
 # PLACEHOLDER_HELPERS
 
 
@@ -64,9 +65,7 @@ async def create_admin() -> dict:
         session.add(admin)
         await session.commit()
         await session.refresh(admin)
-        token = create_access_token(
-            {"sub": str(admin.id), "email": admin.email, "role": "admin"}
-        )
+        token = create_access_token({"sub": str(admin.id), "email": admin.email, "role": "admin"})
         return {"headers": {"Authorization": f"Bearer {token}"}, "user_id": admin.id}
 
 
@@ -106,7 +105,9 @@ class TestCLBConversion:
         assert ielts_to_clb(2.0, "reading") == 3
 
     def test_language_to_clb_ielts(self):
-        lang = LanguageScore(reading=7.0, writing=7.0, listening=8.0, speaking=7.0, test_type="ielts")
+        lang = LanguageScore(
+            reading=7.0, writing=7.0, listening=8.0, speaking=7.0, test_type="ielts"
+        )
         clb = language_to_clb(lang)
         assert clb["reading"] == 9
         assert clb["writing"] == 9
@@ -132,14 +133,18 @@ class TestCRSCalculator:
     def test_young_single_high_score(self):
         """Young single with strong profile."""
         calc = CRSCalculator()
-        result = calc.calculate(CRSInput(
-            age=28,
-            marital_status="single",
-            education_level="masters",
-            first_language=LanguageScore(reading=8.0, writing=7.5, listening=8.5, speaking=7.5, test_type="ielts"),
-            canadian_experience_years=3,
-            foreign_experience_years=3,
-        ))
+        result = calc.calculate(
+            CRSInput(
+                age=28,
+                marital_status="single",
+                education_level="masters",
+                first_language=LanguageScore(
+                    reading=8.0, writing=7.5, listening=8.5, speaking=7.5, test_type="ielts"
+                ),
+                canadian_experience_years=3,
+                foreign_experience_years=3,
+            )
+        )
         assert result["total_score"] > 450
         assert result["breakdown"]["core_human_capital"]["age"] == 110
         assert result["breakdown"]["core_human_capital"]["education"] == 135
@@ -147,111 +152,162 @@ class TestCRSCalculator:
     def test_age_45_zero_points(self):
         """Age 45+ gets zero age points."""
         calc = CRSCalculator()
-        result = calc.calculate(CRSInput(
-            age=45,
-            first_language=LanguageScore(reading=6.0, writing=6.0, listening=6.0, speaking=6.0, test_type="ielts"),
-        ))
+        result = calc.calculate(
+            CRSInput(
+                age=45,
+                first_language=LanguageScore(
+                    reading=6.0, writing=6.0, listening=6.0, speaking=6.0, test_type="ielts"
+                ),
+            )
+        )
         assert result["breakdown"]["core_human_capital"]["age"] == 0
 
     def test_married_lower_core_points(self):
         """Married applicants get lower individual points."""
         calc = CRSCalculator()
-        single = calc.calculate(CRSInput(
-            age=30,
-            marital_status="single",
-            education_level="bachelors",
-            first_language=LanguageScore(reading=7.0, writing=7.0, listening=7.0, speaking=7.0, test_type="ielts"),
-        ))
-        married = calc.calculate(CRSInput(
-            age=30,
-            marital_status="married",
-            education_level="bachelors",
-            first_language=LanguageScore(reading=7.0, writing=7.0, listening=7.0, speaking=7.0, test_type="ielts"),
-        ))
+        single = calc.calculate(
+            CRSInput(
+                age=30,
+                marital_status="single",
+                education_level="bachelors",
+                first_language=LanguageScore(
+                    reading=7.0, writing=7.0, listening=7.0, speaking=7.0, test_type="ielts"
+                ),
+            )
+        )
+        married = calc.calculate(
+            CRSInput(
+                age=30,
+                marital_status="married",
+                education_level="bachelors",
+                first_language=LanguageScore(
+                    reading=7.0, writing=7.0, listening=7.0, speaking=7.0, test_type="ielts"
+                ),
+            )
+        )
         # Single gets more core points
-        assert single["breakdown"]["core_human_capital"]["subtotal"] > married["breakdown"]["core_human_capital"]["subtotal"]
+        assert (
+            single["breakdown"]["core_human_capital"]["subtotal"]
+            > married["breakdown"]["core_human_capital"]["subtotal"]
+        )
 
     def test_pnp_adds_600(self):
         """Provincial nomination adds 600 points."""
         calc = CRSCalculator()
-        without = calc.calculate(CRSInput(
-            age=30,
-            first_language=LanguageScore(reading=6.0, writing=6.0, listening=6.0, speaking=6.0, test_type="ielts"),
-        ))
-        with_pnp = calc.calculate(CRSInput(
-            age=30,
-            first_language=LanguageScore(reading=6.0, writing=6.0, listening=6.0, speaking=6.0, test_type="ielts"),
-            has_provincial_nomination=True,
-        ))
+        without = calc.calculate(
+            CRSInput(
+                age=30,
+                first_language=LanguageScore(
+                    reading=6.0, writing=6.0, listening=6.0, speaking=6.0, test_type="ielts"
+                ),
+            )
+        )
+        with_pnp = calc.calculate(
+            CRSInput(
+                age=30,
+                first_language=LanguageScore(
+                    reading=6.0, writing=6.0, listening=6.0, speaking=6.0, test_type="ielts"
+                ),
+                has_provincial_nomination=True,
+            )
+        )
         assert with_pnp["total_score"] - without["total_score"] == 600
 
     def test_french_bonus(self):
         """French language adds bonus points."""
         calc = CRSCalculator()
-        result = calc.calculate(CRSInput(
-            age=30,
-            first_language=LanguageScore(reading=7.0, writing=7.0, listening=7.0, speaking=7.0, test_type="ielts"),
-            french_language_proficiency="clb7_plus",
-        ))
+        result = calc.calculate(
+            CRSInput(
+                age=30,
+                first_language=LanguageScore(
+                    reading=7.0, writing=7.0, listening=7.0, speaking=7.0, test_type="ielts"
+                ),
+                french_language_proficiency="clb7_plus",
+            )
+        )
         assert result["breakdown"]["additional_points"]["french_proficiency"] == 50
 
     def test_skill_transferability_capped_100(self):
         """Skill transferability is capped at 100."""
         calc = CRSCalculator()
-        result = calc.calculate(CRSInput(
-            age=30,
-            education_level="doctoral",
-            first_language=LanguageScore(reading=8.0, writing=8.0, listening=8.5, speaking=8.0, test_type="ielts"),
-            canadian_experience_years=5,
-            foreign_experience_years=5,
-        ))
+        result = calc.calculate(
+            CRSInput(
+                age=30,
+                education_level="doctoral",
+                first_language=LanguageScore(
+                    reading=8.0, writing=8.0, listening=8.5, speaking=8.0, test_type="ielts"
+                ),
+                canadian_experience_years=5,
+                foreign_experience_years=5,
+            )
+        )
         assert result["breakdown"]["skill_transferability"]["total"] <= 100
 
     def test_spouse_factors(self):
         """Spouse factors add points."""
         calc = CRSCalculator()
-        result = calc.calculate(CRSInput(
-            age=30,
-            marital_status="married",
-            education_level="bachelors",
-            first_language=LanguageScore(reading=7.0, writing=7.0, listening=7.0, speaking=7.0, test_type="ielts"),
-            spouse_education="masters",
-            spouse_language=LanguageScore(reading=7.0, writing=7.0, listening=7.0, speaking=7.0, test_type="ielts"),
-            spouse_canadian_experience_years=2,
-        ))
+        result = calc.calculate(
+            CRSInput(
+                age=30,
+                marital_status="married",
+                education_level="bachelors",
+                first_language=LanguageScore(
+                    reading=7.0, writing=7.0, listening=7.0, speaking=7.0, test_type="ielts"
+                ),
+                spouse_education="masters",
+                spouse_language=LanguageScore(
+                    reading=7.0, writing=7.0, listening=7.0, speaking=7.0, test_type="ielts"
+                ),
+                spouse_canadian_experience_years=2,
+            )
+        )
         assert result["breakdown"]["spouse_factors"]["subtotal"] > 0
         assert result["breakdown"]["spouse_factors"]["education"] == 10
 
     def test_recommendations_generated(self):
         """Recommendations are generated."""
         calc = CRSCalculator()
-        result = calc.calculate(CRSInput(
-            age=35,
-            first_language=LanguageScore(reading=6.0, writing=6.0, listening=6.0, speaking=6.0, test_type="ielts"),
-        ))
+        result = calc.calculate(
+            CRSInput(
+                age=35,
+                first_language=LanguageScore(
+                    reading=6.0, writing=6.0, listening=6.0, speaking=6.0, test_type="ielts"
+                ),
+            )
+        )
         assert len(result["recommendations"]) > 0
 
     def test_eligible_for_ita(self):
         """High score candidate marked eligible."""
         calc = CRSCalculator()
-        result = calc.calculate(CRSInput(
-            age=28,
-            education_level="masters",
-            first_language=LanguageScore(reading=8.0, writing=7.5, listening=8.5, speaking=7.5, test_type="ielts"),
-            canadian_experience_years=3,
-            has_provincial_nomination=True,
-        ))
+        result = calc.calculate(
+            CRSInput(
+                age=28,
+                education_level="masters",
+                first_language=LanguageScore(
+                    reading=8.0, writing=7.5, listening=8.5, speaking=7.5, test_type="ielts"
+                ),
+                canadian_experience_years=3,
+                has_provincial_nomination=True,
+            )
+        )
         assert result["eligible_for_ita"] is True
 
     def test_no_education_zero_points(self):
         """No education gives 0 education points."""
         calc = CRSCalculator()
-        result = calc.calculate(CRSInput(
-            age=30,
-            education_level="none",
-            first_language=LanguageScore(reading=6.0, writing=6.0, listening=6.0, speaking=6.0, test_type="ielts"),
-        ))
+        result = calc.calculate(
+            CRSInput(
+                age=30,
+                education_level="none",
+                first_language=LanguageScore(
+                    reading=6.0, writing=6.0, listening=6.0, speaking=6.0, test_type="ielts"
+                ),
+            )
+        )
         assert result["breakdown"]["core_human_capital"]["education"] == 0
+
+
 # PLACEHOLDER_API_TESTS
 
 
@@ -368,8 +424,10 @@ class TestCRSAPI:
                 "marital_status": "single",
                 "education_level": "bachelors",
                 "first_language": {
-                    "reading": 6.0, "writing": 6.0,
-                    "listening": 6.0, "speaking": 6.0,
+                    "reading": 6.0,
+                    "writing": 6.0,
+                    "listening": 6.0,
+                    "speaking": 6.0,
                     "test_type": "ielts",
                 },
             },
@@ -391,16 +449,16 @@ class TestCRSAPI:
                 "marital_status": "single",
                 "education_level": "bachelors",
                 "first_language": {
-                    "reading": 7.0, "writing": 7.0,
-                    "listening": 7.0, "speaking": 7.0,
+                    "reading": 7.0,
+                    "writing": 7.0,
+                    "listening": 7.0,
+                    "speaking": 7.0,
                     "test_type": "ielts",
                 },
             },
         )
 
-        response = await client.get(
-            f"/crs/history/{candidate_id}", headers=admin["headers"]
-        )
+        response = await client.get(f"/crs/history/{candidate_id}", headers=admin["headers"])
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
