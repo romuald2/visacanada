@@ -7,12 +7,14 @@ from app.api.auth import router as auth_router
 from app.api.billing import router as billing_router
 from app.api.candidates import router as candidates_router
 from app.api.compliance import router as compliance_router
+from app.api.complaint import router as complaint_router
 from app.api.crs import router as crs_router
 from app.api.dashboard import router as dashboard_router
 from app.api.deadlines import router as deadlines_router
 from app.api.documents import router as documents_router
 from app.api.dossiers import router as dossiers_router
 from app.api.email import router as email_router
+from app.api.export import router as export_router
 from app.api.extraction import router as extraction_router
 from app.api.family import router as family_router
 from app.api.fraud import router as fraud_router
@@ -75,6 +77,8 @@ app.include_router(family_router)
 app.include_router(billing_router)
 app.include_router(knowledge_router)
 app.include_router(privacy_router)
+app.include_router(complaint_router)
+app.include_router(export_router)
 
 
 @app.get("/")
