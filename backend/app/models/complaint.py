@@ -1,12 +1,15 @@
 """Complaint model for PIPEDA Principle 10 (contestation)."""
 
 from datetime import datetime, timezone
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.user import Base
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class Complaint(Base):

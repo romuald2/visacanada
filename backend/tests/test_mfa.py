@@ -3,7 +3,6 @@ import json
 
 import pytest
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.api.auth import hash_password
@@ -75,7 +74,9 @@ async def create_user(db_session):
 def get_token():
     """Generate JWT token for testing."""
     from datetime import datetime, timedelta, timezone
+
     from jose import jwt
+
     from app.core.config import settings
 
     def _get_token(user_id: int, email: str, role: UserRole):
@@ -185,7 +186,6 @@ async def test_mfa_verify_setup_invalid_code(client: AsyncClient, admin_token: s
 @pytest.mark.asyncio
 async def test_mfa_login_flow(client: AsyncClient, create_user, db_session):
     """Complete MFA login flow."""
-    from app.api.auth import hash_password
     import pyotp
 
     # Create admin user
@@ -217,8 +217,9 @@ async def test_mfa_login_flow(client: AsyncClient, create_user, db_session):
 @pytest.mark.asyncio
 async def test_mfa_backup_code_login(client: AsyncClient, create_user, db_session):
     """Backup codes work for login."""
-    from app.api.auth import hash_password
     import pyotp
+
+    from app.api.auth import hash_password
 
     # Create admin user
     user = await create_user("mfa-backup@test.com", "password123", UserRole.admin)

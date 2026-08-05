@@ -6,8 +6,8 @@ from app.api.analytics import router as analytics_router
 from app.api.auth import router as auth_router
 from app.api.billing import router as billing_router
 from app.api.candidates import router as candidates_router
-from app.api.compliance import router as compliance_router
 from app.api.complaint import router as complaint_router
+from app.api.compliance import router as compliance_router
 from app.api.crs import router as crs_router
 from app.api.dashboard import router as dashboard_router
 from app.api.deadlines import router as deadlines_router

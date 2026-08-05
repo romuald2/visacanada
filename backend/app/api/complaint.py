@@ -1,6 +1,5 @@
 """Candidate portal complaint endpoint (PIPEDA Principle 10)."""
 
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
@@ -44,7 +43,7 @@ async def submit_complaint(
     # Notify admin by email (best effort)
     try:
         admin_res = await db.execute(
-            select(User).where(User.role == UserRole.admin).where(User.is_active == True)
+            select(User).where(User.role == UserRole.admin).where(User.is_active)
         )
         admins = admin_res.scalars().all()
 
