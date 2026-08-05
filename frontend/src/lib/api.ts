@@ -2,6 +2,7 @@
 
 import type {
   DossierPage,
+  DashboardOverview,
   TokenResponse,
   UpcomingResponse,
   User,
@@ -135,11 +136,26 @@ export function getUpcomingDeadlines(
 
 /** List dossiers (paginated). The backend scopes results by role. */
 export function getDossiers(
-  opts: RequestOptions & { page?: number; size?: number; status?: string } = {},
+  opts: RequestOptions & {
+    page?: number;
+    size?: number;
+    status?: string;
+    program_id?: number;
+    assigned_to?: number;
+  } = {},
 ): Promise<DossierPage> {
   const params = new URLSearchParams();
   params.set("page", String(opts.page ?? 1));
   params.set("size", String(opts.size ?? 20));
   if (opts.status) params.set("status", opts.status);
+  if (opts.program_id) params.set("program_id", String(opts.program_id));
+  if (opts.assigned_to) params.set("assigned_to", String(opts.assigned_to));
   return apiGet<DossierPage>(`/dossiers/?${params.toString()}`, opts);
+}
+
+/** Get dashboard overview stats (counts by status, totals, compliance avg). */
+export function getDashboardOverview(
+  opts: RequestOptions = {},
+): Promise<DashboardOverview> {
+  return apiGet<DashboardOverview>("/dashboard/overview", opts);
 }
