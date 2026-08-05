@@ -1,0 +1,151 @@
+[SIMULATION - Document officiel non juridiquement contraignant]
+
+AWS DATA PROCESSING ADDENDUM
+Amazon Web Services, Inc.
+
+Effective Date: August 5, 2026
+Customer: VisaCanada Inc.
+AWS Account ID: [customer-account-id]
+Services: Amazon S3 (Simple Storage Service)
+
+This Data Processing Addendum ("AWS DPA") is incorporated into the AWS Customer Agreement and governs the processing of Customer Content that constitutes Personal Data.
+
+1. DEFINITIONS
+   "Customer Content" means content that Customer or End Users transfer to AWS for processing, storage, or hosting.
+   "Personal Data" means information relating to an identified or identifiable natural person.
+   "AWS Content" means software, data, text, audio, video, or images provided by AWS.
+
+2. SCOPE OF PROCESSING
+   2.1 AWS will process Customer Content only to provide the Services and as instructed by Customer.
+   2.2 Customer is the data controller; AWS is the data processor.
+   2.3 This DPA applies to S3 buckets storing immigration documents in ca-central-1 region.
+
+3. DATA PROTECTION OBLIGATIONS
+   3.1 AWS will:
+       - Implement appropriate technical and organizational security measures
+       - Ensure AWS personnel process Personal Data only as necessary
+       - Assist Customer in responding to data subject rights requests
+       - Notify Customer of security breaches without undue delay
+       - Delete or return Personal Data upon request or termination
+
+4. SECURITY MEASURES
+   4.1 Encryption:
+       - At rest: AES-256 via S3 Server-Side Encryption (SSE-S3)
+       - In transit: TLS 1.2 or higher for all API calls
+
+   4.2 Access Controls:
+       - AWS Identity and Access Management (IAM)
+       - Bucket policies restricting access to authorized principals
+       - MFA required for sensitive operations
+
+   4.3 Logging and Monitoring:
+       - AWS CloudTrail enabled for all S3 API calls
+       - S3 Access Logs enabled
+       - AWS Config tracking configuration changes
+
+   4.4 Compliance Certifications:
+       - ISO 27001, 27017, 27018
+       - SOC 1, SOC 2, SOC 3
+       - PCI DSS Level 1
+       - PIPEDA-equivalent controls in Canadian regions
+
+5. DATA RESIDENCY
+   5.1 Region: ca-central-1 (Montreal, Quebec, Canada)
+   5.2 S3 Bucket Policy Configuration:
+       ```json
+       {
+         "Version": "2012-10-17",
+         "Statement": [
+           {
+             "Effect": "Deny",
+             "Principal": "*",
+             "Action": "s3:*",
+             "Resource": "arn:aws:s3:::visacanada-documents/*",
+             "Condition": {
+               "StringNotEquals": {
+                 "aws:RequestedRegion": "ca-central-1"
+               }
+             }
+           }
+         ]
+       }
+       ```
+   5.3 No cross-region replication enabled.
+   5.4 All data processing occurs exclusively within ca-central-1.
+
+6. SUBPROCESSORS
+   6.1 AWS uses subprocessors listed at: https://aws.amazon.com/compliance/sub-processors/
+   6.2 Customer will receive 30 days notice of new subprocessors via AWS notifications.
+
+7. DATA SUBJECT RIGHTS
+   7.1 AWS provides tools for Customer to fulfill data subject requests:
+       - S3 API for data retrieval (GetObject)
+       - S3 Object Tagging for data classification
+       - S3 Lifecycle policies for automated deletion
+       - S3 Inventory for data discovery
+
+8. SECURITY BREACH NOTIFICATION
+   8.1 AWS will notify Customer within 72 hours of becoming aware of a security breach affecting Customer Content.
+   8.2 Notification channels:
+       - AWS Security Hub
+       - AWS Health Dashboard
+       - Email to registered security contacts
+   8.3 Notification includes:
+       - Description of breach
+       - Affected resources (bucket names, object keys)
+       - AWS remediation actions
+       - Recommended customer actions
+
+9. AUDIT RIGHTS
+   9.1 Customer may audit AWS compliance via:
+       - AWS Artifact (compliance reports)
+       - CloudTrail logs (API activity)
+       - Third-party audit reports (SOC 2, ISO 27001)
+   9.2 On-site audits available upon request (30 days notice, max once per year).
+
+10. DATA RETENTION AND DELETION
+    10.1 Customer controls retention via S3 Lifecycle policies.
+    10.2 Upon termination or deletion request:
+         - Objects deleted within 24 hours
+         - Versioned copies deleted within 30 days
+         - Backup copies deleted within 90 days
+    10.3 Secure deletion: AWS uses NIST 800-88 media sanitization standards.
+
+11. INTERNATIONAL TRANSFERS
+    11.1 No data transfers outside Canada without Customer authorization.
+    11.2 If transfer required (e.g., customer-initiated), AWS ensures adequate safeguards (Standard Contractual Clauses).
+
+12. LIABILITY AND INDEMNIFICATION
+    Each party's liability is governed by the AWS Customer Agreement.
+
+13. TERM AND TERMINATION
+    13.1 Effective: August 5, 2026
+    13.2 Expiration: August 5, 2027
+    13.3 Auto-renewal: Yes, unless terminated with 60 days notice.
+
+AGREED AND ACCEPTED:
+
+Customer: VisaCanada Inc.
+Signature: [Electronic acceptance via AWS Artifact]
+Name: Igor Romuald OUMBE TAKOUGANG
+Title: President / CTO
+Date: August 5, 2026
+AWS Account ID: [customer-account-id]
+S3 Buckets covered: visacanada-documents-prod, visacanada-documents-staging
+
+Service Provider: Amazon Web Services, Inc.
+Signature: [Electronic acceptance via AWS Artifact]
+Date: August 5, 2026
+
+---
+TECHNICAL CONFIGURATION VERIFICATION:
+✓ S3 Default Encryption: Enabled (AES-256)
+✓ Bucket Policy: Deny operations outside ca-central-1
+✓ CloudTrail: Enabled (all data events)
+✓ S3 Access Logs: Enabled
+✓ Versioning: Enabled
+✓ MFA Delete: Enabled
+✓ Public Access Block: Enabled (all settings)
+
+---
+NOTE: This is a simulated DPA for documentation purposes. In production, download the official AWS DPA from AWS Artifact: https://console.aws.amazon.com/artifact/

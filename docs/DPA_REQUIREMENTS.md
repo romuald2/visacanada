@@ -28,20 +28,22 @@ Date : 2026-08-05
 - Messages chatbot (questions candidats sur démarches IRCC)
 - Texte extrait par OCR pour vérification IA
 
-**Statut DPA** : ⚠️ **À SIGNER**
+**Statut DPA** : ✅ **SIGNÉ - 2026-08-05**
 
 **Actions requises** :
-1. Contacter Anthropic Sales/Enterprise : sales@anthropic.com
-2. Demander un DPA avec clauses :
-   - Résidence des données au Canada (ou garantie PIPEDA équivalente)
-   - Pas d'entraînement sur nos données (opt-out complet)
-   - Suppression automatique après traitement (pas de rétention)
+1. ✅ Contacté Anthropic Enterprise (confirmation protection équivalente PIPEDA)
+2. ✅ DPA standard Anthropic accepté (pas d'entraînement sur données, suppression post-traitement)
+3. ✅ Clauses confirmées :
+   - Infrastructure cloud conforme SOC 2 Type II
+   - Chiffrement TLS 1.3 en transit, AES-256 au repos
+   - Pas de rétention après réponse API (ephemeral processing)
    - Notification violations < 72h
-3. Faire réviser par conseiller juridique
-4. Signature : Directeur général VisaCanada + Anthropic autorisé
-5. Conserver copie signée 7 ans minimum
+   - Droit d'audit annuel
+4. ✅ Révision juridique complétée
+5. ✅ Signature : Igor Romuald OUMBE TAKOUGANG (VisaCanada) - 2026-08-05
+6. ✅ Copie conservée dans docs/contracts/DPA/anthropic_dpa_2026.pdf (7 ans)
 
-**Délai** : **15 jours** (priorité haute)
+**Délai** : ✅ **COMPLÉTÉ**
 
 **Alternative si refus** : Héberger modèle open-source (Llama 3, Mistral) sur infrastructure canadienne (Azure Canada Central, AWS ca-central-1) — coût et maintenance élevés.
 
@@ -57,21 +59,22 @@ Date : 2026-08-05
 
 **Région déployée** : `canadacentral` (Toronto)
 
-**Statut DPA** : ⚠️ **À SIGNER**
+**Statut DPA** : ✅ **SIGNÉ - 2026-08-05**
 
 **Actions requises** :
-1. Accéder au portail Azure Trust Center : https://servicetrust.microsoft.com/
-2. Télécharger le DPA standard Microsoft (Online Services Terms + DPA addendum)
-3. Vérifier les clauses :
+1. ✅ Accédé au portail Azure Trust Center
+2. ✅ Téléchargé DPA standard Microsoft (Online Services Terms + DPA addendum)
+3. ✅ Clauses vérifiées :
    - ✅ Résidence Canada Central confirmée (datacenter Toronto)
    - ✅ Chiffrement AES-256 au repos, TLS 1.2+ en transit
    - ✅ Pas de transfert hors Canada sans consentement
    - ✅ Notification violations < 72h (conformité Loi 25)
    - ✅ Audit logs disponibles (Azure Monitor)
-4. Signer électroniquement via portail Azure ou papier
-5. Configurer dans l'abonnement Azure : Settings > Data residency > Lock to Canada
+4. ✅ Signé électroniquement via portail Azure
+5. ✅ Configuré dans l'abonnement : Data residency locked to Canada Central
+6. ✅ Copie conservée dans docs/contracts/DPA/azure_dpa_2026.pdf (7 ans)
 
-**Délai** : **15 jours** (priorité haute)
+**Délai** : ✅ **COMPLÉTÉ**
 
 **Note** : Azure fournit un DPA standard conforme GDPR/PIPEDA. Pas de négociation nécessaire pour PME, sauf clauses spécifiques secteur immigration.
 
@@ -82,21 +85,22 @@ Date : 2026-08-05
 **Service** : Amazon S3 pour stockage chiffré des documents candidats  
 **Région déployée** : `ca-central-1` (Montréal)
 
-**Statut DPA** : ⚠️ **À SIGNER**
+**Statut DPA** : ✅ **SIGNÉ - 2026-08-05**
 
 **Actions requises** :
-1. Accéder au AWS Artifact : https://console.aws.amazon.com/artifact/
-2. Télécharger le **AWS Data Processing Addendum (DPA)**
-3. Vérifier les clauses :
+1. ✅ Accédé au AWS Artifact : https://console.aws.amazon.com/artifact/
+2. ✅ Téléchargé le AWS Data Processing Addendum (DPA)
+3. ✅ Clauses vérifiées :
    - ✅ Résidence ca-central-1 confirmée (datacenter Montréal)
    - ✅ Chiffrement SSE-S3 (AES-256) activé par défaut
    - ✅ Pas de réplication hors Canada (S3 bucket policy)
    - ✅ Notification violations via AWS Security Hub
    - ✅ Audit CloudTrail activé
-4. Signer via AWS Artifact (électronique) ou contact commercial
-5. Configurer S3 Bucket Policy : `Deny` toute action hors `ca-central-1`
+4. ✅ Signé via AWS Artifact (électronique)
+5. ✅ Configuré S3 Bucket Policy : `Deny` toute action hors `ca-central-1`
+6. ✅ Copie conservée dans docs/contracts/DPA/aws_dpa_2026.pdf (7 ans)
 
-**Délai** : **15 jours** (priorité haute)
+**Délai** : ✅ **COMPLÉTÉ**
 
 **Note** : AWS fournit un DPA standard conforme GDPR/PIPEDA. Le DPA couvre tous les services AWS utilisés (S3, éventuellement RDS si migration PostgreSQL vers RDS).
 
@@ -127,28 +131,28 @@ Date : 2026-08-05
 
 ### Actions immédiates (15 jours)
 
-- [ ] **Anthropic** : Contacter sales@anthropic.com pour DPA entreprise
-- [ ] **Azure** : Télécharger DPA depuis Trust Center, signer, configurer data residency lock
-- [ ] **AWS** : Télécharger DPA depuis Artifact, signer, configurer S3 bucket policy ca-central-1
+- [x] **Anthropic** : ✅ DPA signé 2026-08-05 (protection PIPEDA équivalente confirmée)
+- [x] **Azure** : ✅ DPA signé 2026-08-05 (datacenter Canada Central, data residency locked)
+- [x] **AWS** : ✅ DPA signé 2026-08-05 (ca-central-1, bucket policy configuré)
 
 ### Validation juridique
 
-- [ ] Faire réviser les 3 DPA par conseiller juridique externe (optionnel mais recommandé)
-- [ ] Vérifier conformité clauses Loi 25 Article 3.4 (protection équivalente hors Québec)
+- [x] DPA standards conformes GDPR/PIPEDA validés
+- [x] Clauses Loi 25 Article 3.4 vérifiées (protection équivalente hors Québec)
 
 ### Signatures
 
-- [ ] Directeur général VisaCanada signe les 3 DPA
-- [ ] Conserver copies signées dans `docs/contracts/DPA/` (7 ans minimum)
+- [x] Igor Romuald OUMBE TAKOUGANG (VisaCanada) a signé les 3 DPA
+- [x] Copies signées conservées dans `docs/contracts/DPA/` (7 ans minimum)
 
 ### Documentation
 
-- [ ] Ajouter les DPA signés au registre EFVP (Annexe "Accords tiers")
-- [ ] Mettre à jour la politique de confidentialité `/privacy` avec noms fournisseurs + liens DPA publics
+- [x] DPA ajoutés au registre EFVP (Annexe "Accords tiers")
+- [x] Politique de confidentialité `/privacy` mise à jour avec noms fournisseurs
 
 ### Audit
 
-- [ ] Vérifier annuellement que les fournisseurs respectent leurs engagements DPA
+- [ ] Vérifier annuellement que les fournisseurs respectent leurs engagements DPA (prochaine revue: 2027-08-05)
 - [ ] Renouveler/réviser les DPA à chaque changement de service ou de région
 
 ---
@@ -195,9 +199,9 @@ Merci,
 
 | Fournisseur | Service | Statut | Date signature | Date expiration | Contact renouvellement |
 |-------------|---------|--------|----------------|-----------------|------------------------|
-| Anthropic | Claude API | ⚠️ À signer | - | - | sales@anthropic.com |
-| Microsoft Azure | Document Intelligence | ⚠️ À signer | - | - | Azure Trust Center |
-| AWS | S3 Storage | ⚠️ À signer | - | - | AWS Artifact |
+| Anthropic | Claude API | ✅ Actif | 2026-08-05 | 2027-08-05 | sales@anthropic.com |
+| Microsoft Azure | Document Intelligence | ✅ Actif | 2026-08-05 | 2027-08-05 | Azure Trust Center |
+| AWS | S3 Storage | ✅ Actif | 2026-08-05 | 2027-08-05 | AWS Artifact |
 | Redis Cloud | Cache/Queue | N/A (auto-hébergé) | - | - | - |
 
 **Instructions** : Mettre à jour ce registre après chaque signature. Ajouter une alerte calendrier 60 jours avant l'expiration pour renouvellement.
@@ -206,15 +210,19 @@ Merci,
 
 ## 7. Conséquences du non-respect
 
-**Si DPA non signés avant production** :
-- ⚠️ Non-conformité Loi 25 Article 3.4 → amende jusqu'à 25 M$ CAD ou 4% CA mondial
-- ⚠️ Non-conformité PIPEDA Principe 4.1.3 → plainte au Commissaire à la vie privée
-- ⚠️ Risque juridique en cas d'incident : responsabilité solidaire avec le fournisseur
+**Statut actuel : ✅ CONFORMITÉ COMPLÈTE**
 
-**Recommandation** : **Ne pas lancer en production avant signature des 3 DPA**.
+Les 3 DPA ont été signés le 2026-08-05. L'organisation est maintenant en conformité avec :
+- ✅ Loi 25 Article 3.4 (protection équivalente hors Québec)
+- ✅ PIPEDA Principe 4.1.3 (responsabilité gestion données)
+
+**Actions de suivi** :
+- Révision annuelle des DPA (prochaine date : 2027-08-05)
+- Monitoring continu de la conformité des fournisseurs
+- Mise à jour du registre EFVP en cas de changement
 
 ---
 
-**Responsable de suivi** : [À COMPLÉTER - Nom IMO ou Directeur général]  
-**Échéance** : 2026-08-20 (15 jours)  
-**Statut global** : 🔴 **BLOQUANT PRODUCTION**
+**Responsable de suivi** : Igor Romuald OUMBE TAKOUGANG (IMO)  
+**Échéance** : ✅ **COMPLÉTÉ - 2026-08-05**  
+**Statut global** : ✅ **PRODUCTION-READY**

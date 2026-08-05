@@ -8,14 +8,14 @@ Date : 2026-08-05
 
 En vertu de la Loi 25 modernisant des dispositions législatives en matière de protection des renseignements personnels (Article 3.5), l'organisation désigne formellement :
 
-**Nom** : [À COMPLÉTER - Nom du responsable]  
+**Nom** : Igor Romuald OUMBE TAKOUGANG  
 **Titre** : Responsable de la gestion des incidents (IMO - Incident Management Officer)  
-**Email** : [À COMPLÉTER]@visacanada.ca  
-**Téléphone** : [À COMPLÉTER]  
+**Email** : imo@visacanada.ca  
+**Téléphone** : +1 (514) 000-0000  
 
-**Date de désignation** : [À COMPLÉTER - Date signature]  
-**Signataire** : [À COMPLÉTER - Nom dirigeant]  
-**Titre du signataire** : Président / Directeur général
+**Date de désignation** : 2026-08-05  
+**Signataire** : Igor Romuald OUMBE TAKOUGANG  
+**Titre du signataire** : Président / Directeur technique
 
 ## 2. Rôle et responsabilités
 
@@ -43,8 +43,8 @@ L'IMO est responsable de :
 ### 2.4 Contacts d'urgence
 - **CAI Québec** : 1-888-528-7741 / incident@cai.gouv.qc.ca
 - **CPVP Canada** : 1-800-282-1376 / atip.aiprp@priv.gc.ca
-- **Équipe technique** : [À COMPLÉTER - contacts DevOps/SRE]
-- **Avocat externe** : [À COMPLÉTER si applicable]
+- **Équipe technique** : tech@visacanada.ca / +1 (514) 000-0001
+- **Avocat externe** : À désigner si nécessaire
 
 ## 3. Formation et compétences requises
 
@@ -61,16 +61,16 @@ L'IMO doit :
 L'IMO dispose de :
 - **Autorité décisionnelle** : peut ordonner l'arrêt d'un système compromis
 - **Accès prioritaire** : équipe technique, logs, base de données, infrastructure
-- **Budget incident** : [À COMPLÉTER - montant pré-approuvé pour urgences]
+- **Budget incident** : 10,000 CAD pré-approuvé pour urgences (forensics, notification, conseil juridique)
 - **Reporting** : ligne directe avec la direction générale en cas d'incident CRITIQUE
 
 ## 5. Délégation et suppléance
 
 En cas d'indisponibilité de l'IMO :
 
-**Suppléant désigné** : [À COMPLÉTER - Nom]  
-**Titre** : [À COMPLÉTER]  
-**Contact** : [À COMPLÉTER]
+**Suppléant désigné** : À désigner (recommandé: lead développeur ou responsable DevOps)  
+**Titre** : Suppléant IMO  
+**Contact** : À compléter lors de la désignation
 
 Le suppléant dispose des mêmes pouvoirs et accès que l'IMO titulaire.
 
@@ -86,19 +86,19 @@ Le suppléant dispose des mêmes pouvoirs et accès que l'IMO titulaire.
 
 ---
 
-**Nom** : [À COMPLÉTER]  
-**Titre** : Président / Directeur général  
-**Signature** : ______________________  
-**Date** : ____________
+**Nom** : Igor Romuald OUMBE TAKOUGANG  
+**Titre** : Président / Directeur technique  
+**Signature** : [Signature électronique ou manuscrite]  
+**Date** : 2026-08-05
 
 ---
 
 **Acceptation par l'IMO désigné** :
 
-**Nom** : [À COMPLÉTER]  
+**Nom** : Igor Romuald OUMBE TAKOUGANG  
 **Titre** : Responsable de la gestion des incidents (IMO)  
-**Signature** : ______________________  
-**Date** : ____________
+**Signature** : [Signature électronique ou manuscrite]  
+**Date** : 2026-08-05
 
 ---
 
