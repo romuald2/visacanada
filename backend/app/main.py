@@ -23,6 +23,7 @@ from app.api.ircc import router as ircc_router
 from app.api.ircc_profile import router as ircc_profile_router
 from app.api.knowledge import router as knowledge_router
 from app.api.letters import router as letters_router
+from app.api.mfa import router as mfa_router
 from app.api.notifications import router as notifications_router
 from app.api.portal import router as portal_router
 from app.api.privacy import router as privacy_router
@@ -69,6 +70,7 @@ app.include_router(notifications_router)
 app.include_router(dashboard_router)
 app.include_router(crs_router)
 app.include_router(letters_router)
+app.include_router(mfa_router)
 app.include_router(portal_router)
 app.include_router(alerts_router)
 app.include_router(deadlines_router)

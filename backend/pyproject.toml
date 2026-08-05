@@ -29,6 +29,8 @@ dependencies = [
     "anyio>=4.0.0",
     "aioboto3>=13.0.0",
     "reportlab>=4.2.0",
+    "pyotp>=2.9.0",
+    "qrcode[pil]>=7.4.0",
 ]
 # Not listed on purpose: pdf2image is an optional OCR fallback (it also needs the
 # poppler binaries) and app/services/tesseract_service.py handles its absence
