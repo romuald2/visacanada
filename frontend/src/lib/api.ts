@@ -6,6 +6,11 @@ import type {
   TokenResponse,
   UpcomingResponse,
   User,
+  AnalyticsOverview,
+  SuccessRateByProgram,
+  ProcessingTimeData,
+  RevenueData,
+  WorkloadForecast,
 } from "@/lib/types";
 
 const API_BASE =
@@ -158,4 +163,42 @@ export function getDashboardOverview(
   opts: RequestOptions = {},
 ): Promise<DashboardOverview> {
   return apiGet<DashboardOverview>("/dashboard/overview", opts);
+}
+
+// --- Analytics endpoints ---
+
+/** Get analytics overview (active, approved, refused, archived counts). */
+export function getAnalyticsOverview(
+  opts: RequestOptions = {},
+): Promise<AnalyticsOverview> {
+  return apiGet<AnalyticsOverview>("/analytics/overview", opts);
+}
+
+/** Get success rate by program. */
+export function getSuccessRate(
+  opts: RequestOptions = {},
+): Promise<SuccessRateByProgram[]> {
+  return apiGet<SuccessRateByProgram[]>("/analytics/success-rate", opts);
+}
+
+/** Get processing time statistics. */
+export function getProcessingTime(
+  opts: RequestOptions = {},
+): Promise<ProcessingTimeData> {
+  return apiGet<ProcessingTimeData>("/analytics/processing-time", opts);
+}
+
+/** Get revenue data by period. */
+export function getRevenue(
+  opts: RequestOptions & { period?: "month" | "year" } = {},
+): Promise<RevenueData> {
+  const period = opts.period ?? "month";
+  return apiGet<RevenueData>(`/analytics/revenue?period=${period}`, opts);
+}
+
+/** Get workload forecast. */
+export function getWorkloadForecast(
+  opts: RequestOptions = {},
+): Promise<WorkloadForecast> {
+  return apiGet<WorkloadForecast>("/analytics/workload-forecast", opts);
 }
