@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Script de démarrage automatique VisaCanada
 Lance backend + frontend en mode développement
@@ -10,6 +11,12 @@ import subprocess
 import time
 import secrets
 from pathlib import Path
+
+# Force UTF-8 sur Windows
+if sys.platform == "win32":
+    import codecs
+    sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
+    sys.stderr = codecs.getwriter("utf-8")(sys.stderr.detach())
 
 # Couleurs pour le terminal
 GREEN = "\033[92m"
@@ -24,13 +31,13 @@ def print_header(text):
     print(f"{BLUE}{'='*60}{RESET}\n")
 
 def print_success(text):
-    print(f"{GREEN}✓ {text}{RESET}")
+    print(f"{GREEN}[OK] {text}{RESET}")
 
 def print_warning(text):
-    print(f"{YELLOW}⚠ {text}{RESET}")
+    print(f"{YELLOW}[!] {text}{RESET}")
 
 def print_error(text):
-    print(f"{RED}✗ {text}{RESET}")
+    print(f"{RED}[X] {text}{RESET}")
 
 def check_python():
     """Vérifier version Python"""
@@ -292,22 +299,22 @@ def start_frontend():
 
 def print_access_info():
     """Afficher les informations d'accès"""
-    print_header("APPLICATION DÉMARRÉE")
+    print_header("APPLICATION DEMARREE")
 
-    print(f"{GREEN}🌐 Frontend:{RESET}     http://localhost:3000")
-    print(f"{GREEN}🔧 Backend API:{RESET}   http://localhost:8000")
-    print(f"{GREEN}📚 Swagger docs:{RESET}  http://localhost:8000/docs")
-    print(f"{GREEN}❤️  Health check:{RESET} http://localhost:8000/health")
+    print(f"{GREEN}[WEB] Frontend:{RESET}     http://localhost:3000")
+    print(f"{GREEN}[API] Backend API:{RESET}   http://localhost:8000")
+    print(f"{GREEN}[DOC] Swagger docs:{RESET}  http://localhost:8000/docs")
+    print(f"{GREEN}[CHK] Health check:{RESET} http://localhost:8000/health")
 
-    print(f"\n{YELLOW}👤 Comptes de test:{RESET}")
+    print(f"\n{YELLOW}Comptes de test:{RESET}")
     print(f"   Admin:       admin@visacanada.ca / Admin123!")
     print(f"   Consultant:  consultant@visacanada.ca / Consultant123!")
     print(f"   Candidat:    candidat@visacanada.ca / Candidat123!")
 
-    print(f"\n{BLUE}📖 Guide de test:{RESET} docs/TESTING_GUIDE.md")
-    print(f"{BLUE}📋 Documentation:{RESET} docs/PROJECT_SUMMARY.md")
+    print(f"\n{BLUE}Guide de test:{RESET} docs/TESTING_GUIDE.md")
+    print(f"{BLUE}Documentation:{RESET} docs/PROJECT_SUMMARY.md")
 
-    print(f"\n{RED}Pour arrêter:{RESET} Ctrl+C dans ce terminal\n")
+    print(f"\n{RED}Pour arreter:{RESET} Ctrl+C dans ce terminal\n")
 
 def main():
     """Point d'entrée principal"""
@@ -371,12 +378,12 @@ def main():
             time.sleep(0.1)
 
     except KeyboardInterrupt:
-        print(f"\n\n{YELLOW}Arrêt des services...{RESET}")
+        print(f"\n\n{YELLOW}Arret des services...{RESET}")
         backend_process.terminate()
         if frontend_process:
             frontend_process.terminate()
         time.sleep(1)
-        print_success("Services arrêtés. À bientôt!")
+        print_success("Services arretes. A bientot!")
 
 if __name__ == "__main__":
     main()
