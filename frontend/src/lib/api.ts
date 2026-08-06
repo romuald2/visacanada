@@ -6,6 +6,13 @@ import type {
   TokenResponse,
   UpcomingResponse,
   User,
+  KnowledgeDocument,
+  IngestDocumentRequest,
+  IngestDocumentResponse,
+  ConversationSummary,
+  Conversation,
+  AskRequest,
+  AskResponse,
 } from "@/lib/types";
 
 const API_BASE =
@@ -98,6 +105,36 @@ async function apiPost<T>(
   return (await response.json()) as T;
 }
 
+async function apiDelete(
+  path: string,
+  opts: RequestOptions = {},
+): Promise<{ detail: string }> {
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (opts.token) {
+    headers.Authorization = `Bearer ${opts.token}`;
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      method: "DELETE",
+      headers,
+      signal: opts.signal,
+    });
+  } catch (err) {
+    throw new ApiError(
+      err instanceof Error ? err.message : "Erreur reseau",
+      0,
+    );
+  }
+
+  if (!response.ok) {
+    throw await parseError(response);
+  }
+
+  return (await response.json()) as { detail: string };
+}
+
 // --- Auth endpoints ---
 
 /** Authenticate with email/password. Throws ApiError(401) on bad credentials. */
@@ -158,4 +195,56 @@ export function getDashboardOverview(
   opts: RequestOptions = {},
 ): Promise<DashboardOverview> {
   return apiGet<DashboardOverview>("/dashboard/overview", opts);
+}
+
+// --- Knowledge / RAG ---
+
+export function getKnowledgeDocuments(
+  opts: RequestOptions = {},
+): Promise<KnowledgeDocument[]> {
+  return apiGet<KnowledgeDocument[]>("/knowledge/documents", opts);
+}
+
+export function ingestDocument(
+  body: IngestDocumentRequest,
+  opts: RequestOptions = {},
+): Promise<IngestDocumentResponse> {
+  return apiPost<IngestDocumentResponse>("/knowledge/documents", body, opts);
+}
+
+export function deleteKnowledgeDocument(
+  documentId: number,
+  opts: RequestOptions = {},
+): Promise<{ detail: string }> {
+  return apiDelete(`/knowledge/documents/${documentId}`, opts);
+}
+
+export function askQuestion(
+  body: AskRequest,
+  opts: RequestOptions = {},
+): Promise<AskResponse> {
+  return apiPost<AskResponse>("/knowledge/ask", body, opts);
+}
+
+export function getConversations(
+  opts: RequestOptions = {},
+): Promise<ConversationSummary[]> {
+  return apiGet<ConversationSummary[]>("/knowledge/conversations", opts);
+}
+
+export function getConversation(
+  conversationId: number,
+  opts: RequestOptions = {},
+): Promise<Conversation> {
+  return apiGet<Conversation>(
+    `/knowledge/conversations/${conversationId}`,
+    opts,
+  );
+}
+
+export function deleteConversation(
+  conversationId: number,
+  opts: RequestOptions = {},
+): Promise<{ detail: string }> {
+  return apiDelete(`/knowledge/conversations/${conversationId}`, opts);
 }
