@@ -6,6 +6,9 @@ import type {
   TokenResponse,
   UpcomingResponse,
   User,
+  Alert,
+  AlertConfig,
+  AlertConfigUpdate,
 } from "@/lib/types";
 
 const API_BASE =
@@ -98,6 +101,41 @@ async function apiPost<T>(
   return (await response.json()) as T;
 }
 
+async function apiPut<T>(
+  path: string,
+  body: unknown,
+  opts: RequestOptions = {},
+): Promise<T> {
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  };
+  if (opts.token) {
+    headers.Authorization = `Bearer ${opts.token}`;
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      method: "PUT",
+      headers,
+      body: JSON.stringify(body),
+      signal: opts.signal,
+    });
+  } catch (err) {
+    throw new ApiError(
+      err instanceof Error ? err.message : "Erreur reseau",
+      0,
+    );
+  }
+
+  if (!response.ok) {
+    throw await parseError(response);
+  }
+
+  return (await response.json()) as T;
+}
+
 // --- Auth endpoints ---
 
 /** Authenticate with email/password. Throws ApiError(401) on bad credentials. */
@@ -132,6 +170,57 @@ export function getUpcomingDeadlines(
 ): Promise<UpcomingResponse> {
   const days = opts.days ?? 30;
   return apiGet<UpcomingResponse>(`/alerts/upcoming?days=${days}`, opts);
+}
+
+/** List all alerts, optionally filtered by dossier. */
+export function getAlerts(
+  opts: RequestOptions & {
+    dossier_id?: number;
+    include_dismissed?: boolean;
+  } = {},
+): Promise<Alert[]> {
+  const params = new URLSearchParams();
+  if (opts.dossier_id) params.set("dossier_id", String(opts.dossier_id));
+  if (opts.include_dismissed) params.set("include_dismissed", "true");
+  const query = params.toString();
+  return apiGet<Alert[]>(`/alerts${query ? `?${query}` : ""}`, opts);
+}
+
+/** Dismiss an alert. */
+export function dismissAlert(
+  alertId: number,
+  opts: RequestOptions = {},
+): Promise<{ detail: string }> {
+  return apiPost<{ detail: string }>(`/alerts/${alertId}/dismiss`, {}, opts);
+}
+
+/** Get alert configuration for a dossier. */
+export function getAlertConfig(
+  dossierId: number,
+  opts: RequestOptions = {},
+): Promise<AlertConfig> {
+  return apiGet<AlertConfig>(`/alerts/config/${dossierId}`, opts);
+}
+
+/** Update alert configuration for a dossier. */
+export function updateAlertConfig(
+  dossierId: number,
+  data: AlertConfigUpdate,
+  opts: RequestOptions = {},
+): Promise<AlertConfig> {
+  return apiPut<AlertConfig>(`/alerts/config/${dossierId}`, data, opts);
+}
+
+/** Trigger an alert scan (admin/consultant only). */
+export function runAlertScan(
+  opts: RequestOptions & { deliver?: boolean } = {},
+): Promise<{ detail: string; new_alerts?: number }> {
+  const deliver = opts.deliver ?? true;
+  return apiPost<{ detail: string; new_alerts?: number }>(
+    `/alerts/scan?deliver=${deliver}`,
+    {},
+    opts,
+  );
 }
 
 /** List dossiers (paginated). The backend scopes results by role. */

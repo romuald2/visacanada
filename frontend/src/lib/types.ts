@@ -35,6 +35,43 @@ export interface UpcomingResponse {
   items: UpcomingAlert[];
 }
 
+/** One alert from GET /alerts (full list). */
+export interface Alert {
+  id: number;
+  dossier_id: number;
+  alert_type: AlertType;
+  severity: AlertSeverity;
+  title: string;
+  message: string;
+  is_dismissed: boolean;
+  is_notified: boolean;
+  extra_data: Record<string, unknown> | null;
+  created_at: string | null;
+}
+
+/** Alert configuration for a dossier. */
+export interface AlertConfig {
+  dossier_id: number;
+  is_enabled: boolean;
+  enabled_types: Record<string, boolean>;
+  channels: {
+    dashboard: boolean;
+    email: boolean;
+    whatsapp: boolean;
+  };
+}
+
+/** Payload for updating alert config. */
+export interface AlertConfigUpdate {
+  enabled_types?: Record<string, boolean>;
+  channels?: {
+    dashboard?: boolean;
+    email?: boolean;
+    whatsapp?: boolean;
+  };
+  is_enabled?: boolean;
+}
+
 // --- Auth ---
 
 export type UserRole = "admin" | "consultant" | "candidat";
