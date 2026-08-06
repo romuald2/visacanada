@@ -6,6 +6,13 @@ import type {
   TokenResponse,
   UpcomingResponse,
   User,
+  CRSCalculateRequest,
+  CRSResult,
+  CandidateProfile,
+  PortalDossierSummary,
+  PortalDossierDetail,
+  DossierDocuments,
+  PortalNotification,
 } from "@/lib/types";
 
 const API_BASE =
@@ -158,4 +165,100 @@ export function getDashboardOverview(
   opts: RequestOptions = {},
 ): Promise<DashboardOverview> {
   return apiGet<DashboardOverview>("/dashboard/overview", opts);
+}
+
+/** Calculate CRS score for Express Entry. */
+export function calculateCRS(
+  data: CRSCalculateRequest,
+  opts: RequestOptions = {},
+): Promise<CRSResult> {
+  return apiPost<CRSResult>("/crs/calculate", data, opts);
+}
+
+// --- Portal (Candidate self-service) ---
+
+/** Get the authenticated candidate's profile. */
+export function getMyProfile(opts: RequestOptions = {}): Promise<CandidateProfile> {
+  return apiGet<CandidateProfile>("/portal/me", opts);
+}
+
+/** List the candidate's own dossiers. */
+export function getMyDossiers(
+  opts: RequestOptions = {},
+): Promise<PortalDossierSummary[]> {
+  return apiGet<PortalDossierSummary[]>("/portal/dossiers", opts);
+}
+
+/** Get detailed view of one owned dossier. */
+export function getMyDossier(
+  dossierId: number,
+  opts: RequestOptions = {},
+): Promise<PortalDossierDetail> {
+  return apiGet<PortalDossierDetail>(`/portal/dossiers/${dossierId}`, opts);
+}
+
+/** Get documents (provided + missing) for an owned dossier. */
+export function getMyDossierDocuments(
+  dossierId: number,
+  opts: RequestOptions = {},
+): Promise<DossierDocuments> {
+  return apiGet<DossierDocuments>(`/portal/dossiers/${dossierId}/documents`, opts);
+}
+
+/** Get the candidate's notifications. */
+export function getMyNotifications(
+  opts: RequestOptions = {},
+): Promise<PortalNotification[]> {
+  return apiGet<PortalNotification[]>("/portal/notifications", opts);
+}
+
+/** Mark a notification as read. */
+export function markNotificationRead(
+  notificationId: number,
+  opts: RequestOptions = {},
+): Promise<{ detail: string }> {
+  return apiPost<{ detail: string }>(
+    `/portal/notifications/${notificationId}/read`,
+    {},
+    opts,
+  );
+}
+
+/** Upload a document to an owned dossier. */
+export async function uploadMyDocument(
+  dossierId: number,
+  documentType: string,
+  file: File,
+  opts: RequestOptions = {},
+): Promise<{
+  id: number;
+  document_type: string;
+  file_name: string;
+  status: string;
+  uploaded_at: string | null;
+}> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("document_type", documentType);
+
+  const headers: Record<string, string> = {};
+  if (opts.token) {
+    headers.Authorization = `Bearer ${opts.token}`;
+  }
+
+  const response = await fetch(
+    `${API_BASE}/portal/dossiers/${dossierId}/documents`,
+    {
+      method: "POST",
+      headers,
+      body: formData,
+      signal: opts.signal,
+    },
+  );
+
+  if (!response.ok) {
+    throw await parseError(response);
+  }
+
+  return response.json();
 }
