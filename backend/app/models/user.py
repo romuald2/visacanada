@@ -1,8 +1,12 @@
 import enum
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, Enum, String, func
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
+if TYPE_CHECKING:
+    from app.models.complaint import Complaint
 
 
 class Base(DeclarativeBase):
@@ -32,6 +36,16 @@ class User(Base):
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    # MFA fields
+    totp_secret: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    totp_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    backup_codes: Mapped[str | None] = mapped_column(String(500), nullable=True)  # JSON array
+
+    # Relationships
+    complaints: Mapped[list["Complaint"]] = relationship(
+        "Complaint", back_populates="user", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:

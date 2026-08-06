@@ -1,0 +1,86 @@
+[SIMULATION - Document officiel non juridiquement contraignant]
+
+MICROSOFT AZURE DATA PROCESSING ADDENDUM
+Microsoft Corporation
+
+Effective Date: August 5, 2026
+Customer: VisaCanada Inc.
+Services: Azure Document Intelligence (Form Recognizer)
+
+This Data Processing Addendum ("DPA") supplements the Microsoft Online Services Terms and governs Microsoft's processing of Customer Data.
+
+1. DEFINITIONS
+   "Customer Data" means all data provided to Microsoft through use of Azure Services.
+   "Personal Data" means any information relating to an identified or identifiable natural person.
+
+2. DATA PROCESSING TERMS
+   2.1 Microsoft will process Customer Data only to provide the Services and comply with Customer's documented instructions.
+   2.2 Microsoft will not use Customer Data for advertising or similar commercial purposes.
+
+3. DATA SECURITY
+   3.1 Encryption:
+       - At rest: AES-256 encryption for all stored data
+       - In transit: TLS 1.2 or higher for all communications
+
+   3.2 Access Controls:
+       - Role-Based Access Control (RBAC)
+       - Multi-factor authentication for administrative access
+       - Regular access reviews and audits
+
+   3.3 Compliance Certifications:
+       - ISO/IEC 27001, 27017, 27018
+       - SOC 1, SOC 2, SOC 3
+       - PIPEDA-compliant operations in Canada
+
+4. DATA RESIDENCY
+   4.1 Region: Canada Central (Toronto, Ontario)
+   4.2 Customer Data will be stored and processed exclusively in the Canada Central region.
+   4.3 Data Residency Lock: Configured to prevent data transfer outside Canada without explicit authorization.
+   4.4 No cross-border transfers without Customer consent.
+
+5. SUBPROCESSORS
+   5.1 Microsoft may engage subprocessors listed at: https://aka.ms/online-services-terms
+   5.2 Customer will be notified 30 days before any new subprocessor engagement.
+
+6. DATA SUBJECT RIGHTS
+   Microsoft will assist Customer in responding to data subject requests (access, correction, deletion, portability) within 30 days.
+
+7. SECURITY BREACH NOTIFICATION
+   7.1 Microsoft will notify Customer without undue delay and within 72 hours of becoming aware of a personal data breach affecting Customer Data.
+   7.2 Notification will include:
+       - Nature of the breach
+       - Affected data categories
+       - Likely consequences
+       - Mitigation measures taken
+
+8. AUDIT AND COMPLIANCE
+   8.1 Azure Monitor logs available for Customer audit
+   8.2 Annual SOC 2 Type II reports available via Service Trust Portal
+   8.3 Customer may conduct on-site audits with 30 days notice (max once per year)
+
+9. DATA DELETION
+   9.1 Upon termination, Microsoft will delete all Customer Data within 90 days.
+   9.2 Customer may request immediate deletion via Azure Portal.
+   9.3 Backup copies deleted within 180 days per retention policy.
+
+10. LIABILITY
+    Each party's liability is limited as specified in the Microsoft Online Services Terms.
+
+11. TERM
+    This DPA is effective from August 5, 2026 to August 5, 2027 and renews automatically unless terminated.
+
+AGREED AND ACCEPTED:
+
+Customer: VisaCanada Inc.
+Signature: [Electronic signature via Azure Portal]
+Name: Igor Romuald OUMBE TAKOUGANG
+Title: President / CTO
+Date: August 5, 2026
+Azure Subscription ID: [customer-subscription-id]
+
+Service Provider: Microsoft Corporation
+Signature: [Electronic acceptance via Azure Trust Center]
+Date: August 5, 2026
+
+---
+NOTE: This is a simulated DPA for documentation purposes. In production, download the official Microsoft DPA from Azure Trust Center: https://servicetrust.microsoft.com/
