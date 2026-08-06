@@ -3,6 +3,8 @@
 import type {
   DossierPage,
   DashboardOverview,
+  CRSCalculateRequest,
+  CRSResult,
   TokenResponse,
   UpcomingResponse,
   User,
@@ -158,4 +160,12 @@ export function getDashboardOverview(
   opts: RequestOptions = {},
 ): Promise<DashboardOverview> {
   return apiGet<DashboardOverview>("/dashboard/overview", opts);
+}
+
+/** Calculate CRS score from provided criteria. */
+export function calculateCRS(
+  data: CRSCalculateRequest,
+  opts: RequestOptions = {},
+): Promise<CRSResult> {
+  return apiPost<CRSResult>("/crs/calculate", data, opts);
 }
