@@ -103,3 +103,85 @@ export interface DashboardOverview {
   average_compliance_score: number | null;
   by_status: Record<string, number>;
 }
+
+// --- Knowledge / RAG ---
+
+export type KnowledgeSourceType = "ircc_page" | "policy" | "manual" | "faq";
+export type MessageRole = "user" | "assistant";
+
+/** Knowledge document from GET /knowledge/documents. */
+export interface KnowledgeDocument {
+  id: number;
+  title: string;
+  source_type: KnowledgeSourceType;
+  source_url: string | null;
+  language: string;
+  chunk_count: number;
+  updated_at: string | null;
+}
+
+/** Request body for POST /knowledge/documents. */
+export interface IngestDocumentRequest {
+  title: string;
+  content: string;
+  source_type?: string;
+  source_url?: string | null;
+  language?: string;
+}
+
+/** Response from POST /knowledge/documents. */
+export interface IngestDocumentResponse {
+  detail: string;
+  document_id: number;
+  reingested: boolean;
+  chunk_count: number;
+  embedding_method?: string;
+}
+
+/** Citation in a chat message. */
+export interface Citation {
+  document_id: number;
+  title: string;
+  source_url: string | null;
+  score: number;
+}
+
+/** One message in a conversation. */
+export interface ChatMessage {
+  id: number;
+  role: MessageRole;
+  content: string;
+  citations: Citation[];
+  method: string | null;
+  created_at: string | null;
+}
+
+/** Conversation summary from GET /knowledge/conversations. */
+export interface ConversationSummary {
+  id: number;
+  title: string;
+  updated_at: string | null;
+}
+
+/** Full conversation from GET /knowledge/conversations/{id}. */
+export interface Conversation {
+  id: number;
+  title: string;
+  messages: ChatMessage[];
+}
+
+/** Request body for POST /knowledge/ask. */
+export interface AskRequest {
+  question: string;
+  conversation_id?: number | null;
+  top_k?: number;
+}
+
+/** Response from POST /knowledge/ask. */
+export interface AskResponse {
+  conversation_id: number;
+  message_id: number;
+  answer: string;
+  method: string;
+  citations: Citation[];
+}
